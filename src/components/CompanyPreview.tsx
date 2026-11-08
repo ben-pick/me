@@ -1,10 +1,23 @@
 import { useEffect, useRef } from "react";
 import { COMPANY_GLYPHS } from "../brain/company-glyphs.ts";
-import { companyBySlug } from "../content/index.ts";
 import { getState, useStore } from "../lib/store.ts";
 
-const W = 176;
-const H = 124;
+const W = 268;
+const H = 176;
+/** Halftone cell size in CSS px, and the offscreen supersampling factor. */
+const PITCH = 2.5;
+const SS = 2;
+const SW = W * SS;
+const SH = H * SS;
+const GW = Math.floor(W / PITCH);
+const GH = Math.floor(H / PITCH);
+const SAMPLES: ReadonlyArray<[number, number]> = [
+  [0, 0],
+  [-1, 0],
+  [1, 0],
+  [0, -1],
+  [0, 1],
+];
 
 /**
  * A small dot-matrix vignette of the hovered company's work, trailing the
@@ -14,7 +27,6 @@ export const CompanyPreview = () => {
   const slug = useStore((s) => s.preview);
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const caption = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!window.matchMedia("(pointer: fine)").matches) return;
@@ -32,7 +44,13 @@ export const CompanyPreview = () => {
     let show = 0;
     let raf = 0;
     let last: string | null = null;
-    const start = performance.now();
+    const off = document.createElement("canvas");
+    off.width = SW;
+    off.height = SH;
+    const src = off.getContext("2d", { willReadFrequently: true });
+    if (!src) return;
+    let shownSlug: string | null = null;
+    let since = performance.now();
     const onMove = (e: PointerEvent) => {
       mx = e.clientX;
       my = e.clientY;
@@ -54,23 +72,47 @@ export const CompanyPreview = () => {
       el.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${lean}deg) scale(${0.9 + show * 0.1})`;
       el.style.opacity = show.toFixed(3);
       if (show > 0.01 && last) {
-        const glyph = COMPANY_GLYPHS[last];
+        if (last !== shownSlug) {
+          // Restart the scene so its figures count up for each new row.
+          shownSlug = last;
+          since = now;
+        }
+        const scene = COMPANY_GLYPHS[last];
         ctx.clearRect(0, 0, cv.width, cv.height);
-        if (glyph) {
-          const t = (now - start) / 1000;
-          const s = 1.6 * dpr;
-          for (const [gx, gy, a] of glyph(t)) {
-            ctx.fillStyle = `rgba(236,229,225,${(a * show).toFixed(3)})`;
-            ctx.fillRect(
-              (W / 2 + gx) * dpr - s / 2,
-              (H / 2 - 6 + gy) * dpr - s / 2,
-              s,
-              s,
-            );
+        if (scene) {
+          // 1. Draw the vector scene off-screen, white on black, at 2×.
+          src.setTransform(1, 0, 0, 1, 0, 0);
+          src.fillStyle = "#000";
+          src.fillRect(0, 0, SW, SH);
+          src.setTransform(SS, 0, 0, SS, SW / 2, SH / 2 + 2 * SS);
+          scene(src, (now - since) / 1000);
+          // 2. Halftone it: one square dot per cell, sized by brightness.
+          const px = src.getImageData(0, 0, SW, SH).data;
+          const cell = PITCH * SS;
+          const half = Math.floor(cell / 2);
+          for (let gy = 0; gy < GH; gy++) {
+            for (let gx = 0; gx < GW; gx++) {
+              const sx = Math.floor(gx * cell + half);
+              const sy = Math.floor(gy * cell + half);
+              // Average a small cross around the cell centre.
+              let lum = 0;
+              for (const [ox, oy] of SAMPLES) {
+                const i = ((sy + oy) * SW + (sx + ox)) * 4;
+                lum += px[i] ?? 0;
+              }
+              lum /= SAMPLES.length * 255;
+              if (lum < 0.06) continue;
+              const size = PITCH * dpr * Math.min(1, Math.sqrt(lum) * 0.95);
+              ctx.fillStyle = `rgba(236,229,225,${(Math.min(1, 0.35 + lum) * show).toFixed(3)})`;
+              ctx.fillRect(
+                (gx * PITCH + PITCH / 2) * dpr - size / 2,
+                (gy * PITCH + PITCH / 2) * dpr - size / 2,
+                size,
+                size,
+              );
+            }
           }
         }
-        if (caption.current)
-          caption.current.textContent = companyBySlug(last)?.name ?? "";
       }
       raf = requestAnimationFrame(tick);
     };
@@ -95,10 +137,6 @@ export const CompanyPreview = () => {
       <span className="absolute bottom-0 left-0 size-2.5 border-cream border-b border-l" />
       <span className="absolute right-0 bottom-0 size-2.5 border-cream border-r border-b" />
       <canvas ref={canvas} className="block size-full" />
-      <span
-        ref={caption}
-        className="absolute bottom-2 left-3 font-mono text-[9px] uppercase tracking-wide text-soft"
-      />
     </div>
   );
 };

@@ -63,8 +63,9 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 - **Brain attention**: elements with `data-region` light up that brain region when they
   reach the middle of the screen. Company rows take it from `region:` in their content
   file. Once the header scrolls away, a mini-brain docks bottom-right while you scroll.
-- **Company previews**: each row has a dot-matrix vignette that trails the cursor
-  (`src/brain/company-glyphs.ts`).
+- **Company previews**: each row has an animated preview that trails the cursor. Scenes
+  are shaded vector drawings (`src/brain/company-glyphs.ts`) rendered off-screen and
+  converted to the brain's square-dot halftone, with dot size following brightness.
 - **Scroll reveals**: section headings scramble into place and their rules draw across.
 
 ## Now playing
