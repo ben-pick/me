@@ -1,11 +1,11 @@
 ---
-slug: thanks
-name: Thanks
-role: Senior Software Engineer
+slug: kodo
+name: Kodo (ex-Thanks)
+role: Founding Engineer
 start: Jan 2026
 end: Now
-highlight: Re-envisioning loyalty for any site · white-label rewards & embeddable offers
-url: https://thanks.co
+highlight: Loyalty for the agentic world
+url: https://kodo.co
 stack: [Cloudflare Workers, React, Next.js, Node.js, TypeScript, MySQL (PlanetScale), Pulumi, GitHub Actions]
 ---
 

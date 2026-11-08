@@ -16,7 +16,7 @@ describe("loadContent", () => {
 
   it("loads every collection in order", () => {
     expect(content.companies.map((c) => c.slug)).toEqual([
-      "thanks",
+      "kodo",
       "commbank-staff",
       "commbank-senior",
       "quantium",

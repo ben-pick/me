@@ -51,7 +51,7 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 | `⌘K` / `Ctrl+K`, or start typing | Command palette (fuzzy search) |
 | `⌥1`–`⌥5` | Latest log, copy email, experience, GitHub, book a coffee |
 | `⌘C` over the contact block | Copy email |
-| `#company/thanks`, `#project/nooks`, `#interest/djing` | Deep-link a popover |
+| `#company/kodo`, `#project/nooks`, `#interest/djing` | Deep-link a popover |
 | Brain: drag, click, `←` `→` `↵` | Rotate with inertia, select, open |
 
 ## Motion

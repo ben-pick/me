@@ -4,9 +4,8 @@ num: "02"
 name: DJing
 region: Temporal lobe
 function: Auditory processing
-blurb: Where sound gets processed — and where my sets get planned.
+blurb: Best way to share my crappy music taste with others.
 facts:
-  - { k: Genres, v: "[Your genres]" }
-  - { k: Setup, v: "[Controller / decks]" }
-  - { k: Listen, v: "[Mix link]" }
+  - { k: Genres, v: "Jungle, techno, house, hardstyle, dnb and more" }
+  - { k: Setup, v: "Pioneer hand-me-down" }
 ---

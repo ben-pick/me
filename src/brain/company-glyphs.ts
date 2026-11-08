@@ -781,7 +781,7 @@ const ibm: SceneFn = (c, t) => {
 };
 
 export const COMPANY_GLYPHS: Record<string, SceneFn> = {
-  thanks,
+  kodo: thanks,
   "commbank-staff": commbankStaff,
   "commbank-senior": commbankSenior,
   quantium,

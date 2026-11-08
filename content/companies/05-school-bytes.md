@@ -4,7 +4,7 @@ name: School Bytes
 role: Full-Stack Developer
 start: Feb 2021
 end: Feb 2022
-highlight: Admin platform for 1,700+ schools · $100M exit
+highlight: Exited startup · Admin platform for 1,700+ schools 
 url: https://www.schoolbytes.education
 stack: [PHP, Laravel, jQuery, SQL]
 ---

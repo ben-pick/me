@@ -33,7 +33,7 @@ import { Markdown } from "./Markdown.tsx";
 import { Brackets, Chip, Grain } from "./ui.tsx";
 
 /* ------------------------------------------------------------------ */
-/* Hash sync: `#company/thanks` opens that popover, closing clears it. */
+/* Hash sync: `#company/kodo` opens that popover, closing clears it. */
 /* ------------------------------------------------------------------ */
 
 const usePopoverHash = (current: OpenPopover | null) => {

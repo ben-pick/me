@@ -4,7 +4,7 @@ name: CommBank
 role: Senior Software Engineer
 start: Nov 2022
 end: Mar 2025
-highlight: Murex trading platform · 60% cloud cost saved · 95% faster deploys
+highlight: Building CBA's largest cloud product
 url: https://www.commbank.com.au
 stack: [Angular, Python Lambda, API Gateway, DynamoDB, AWS CDK, Step Functions]
 ---
