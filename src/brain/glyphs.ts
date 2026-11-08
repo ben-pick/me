@@ -274,11 +274,86 @@ const dogs = (t: number): Dot[] => {
   return d;
 };
 
+/** Code token widths per line: [indent, ...tokens], in dots. */
+const CODE: ReadonlyArray<ReadonlyArray<number>> = [
+  [0, 3, 5, 2],
+  [2, 4, 6],
+  [4, 2, 7, 3],
+  [4, 5, 2],
+  [2, 3],
+  [0, 6, 4],
+];
+const CHARS_PER_LINE = CODE.map((l) =>
+  l.slice(1).reduce((a, b) => a + b + 1, 0),
+);
+const TOTAL_CHARS = CHARS_PER_LINE.reduce((a, b) => a + b, 0);
+
+/** A monitor: code types itself in, the cursor blinks, then a deploy bar fills. */
+const tech = (t: number): Dot[] => {
+  const d: Dot[] = [];
+  // Monitor bezel + stand
+  line(d, -46, -32, 46, -32, 30, 0.45);
+  line(d, -46, 20, 46, 20, 30, 0.45);
+  line(d, -46, -32, -46, 20, 17, 0.45);
+  line(d, 46, -32, 46, 20, 17, 0.45);
+  line(d, -4, 21, -7, 29, 3, 0.4);
+  line(d, 4, 21, 7, 29, 3, 0.4);
+  line(d, -16, 30, 16, 30, 10, 0.45);
+  // Window chrome: three dots and a title rule
+  d.push([-41, -27, 0.6], [-37, -27, 0.6], [-33, -27, 0.6]);
+  line(d, -26, -27, 40, -27, 22, 0.2);
+
+  const cycle = TOTAL_CHARS / 22 + 2.6;
+  const u = t % cycle;
+  let typed = Math.floor(u * 22);
+  const step = 3;
+  let cx = -40;
+  let cy = -20;
+  CODE.forEach((tokens, row) => {
+    const y = -20 + row * 6;
+    const indent = tokens[0] ?? 0;
+    let x = -40 + indent * step;
+    // Line-number gutter
+    d.push([-44, y, 0.25]);
+    tokens.slice(1).forEach((len, k) => {
+      for (let i = 0; i < len; i++) {
+        if (typed <= 0) return;
+        typed--;
+        // First token on each line reads as a keyword: brighter.
+        d.push([x, y, k === 0 ? 1 : 0.6]);
+        cx = x + step;
+        cy = y;
+        x += step;
+      }
+      x += step;
+      if (typed > 0) typed--;
+    });
+  });
+  // Blinking block cursor
+  if (Math.floor(t * 2.2) % 2 === 0) d.push([cx, cy - 1, 1], [cx, cy + 1, 1]);
+
+  // Deploy bar once the code is in
+  const done = u * 22 >= TOTAL_CHARS;
+  if (done) {
+    const fill = Math.min(1, (u - TOTAL_CHARS / 22) / 1.4);
+    const n = 26;
+    for (let i = 0; i < n; i++)
+      d.push([-38 + i * 3, 14, i / n < fill ? 1 : 0.2]);
+    if (fill >= 1) {
+      const pulse = (u - TOTAL_CHARS / 22 - 1.4) / 1.2;
+      ring(d, 40, 14, 2 + pulse * 6, 10, Math.max(0, 1 - pulse));
+      d.push([40, 14, 1]);
+    }
+  }
+  return d;
+};
+
 export const GLYPHS: Record<Region, (t: number) => Dot[]> = {
   bouldering,
   djing,
   gaming,
   dogs,
+  tech,
 };
 
 /** Callout size in CSS px. */

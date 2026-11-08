@@ -24,18 +24,26 @@ describe("loadContent", () => {
       "data61",
       "ibm",
     ]);
-    expect(content.projects).toHaveLength(3);
+    expect(content.projects.map((p) => p.slug)).toEqual(["nooks"]);
     expect(content.interests.map((i) => i.slug)).toEqual([
       "bouldering",
       "djing",
       "gaming",
       "dogs",
+      "tech",
     ]);
   });
 
-  it("sorts posts newest first", () => {
-    const dates = content.posts.map((p) => p.date);
+  it("sorts logs newest first", () => {
+    const dates = content.logs.map((p) => p.date);
     expect([...dates].sort().reverse()).toEqual(dates);
+  });
+
+  it("links build logs to real projects", () => {
+    const slugs = new Set(content.projects.map((p) => p.slug));
+    for (const l of content.logs)
+      if (l.project) expect(slugs.has(l.project)).toBe(true);
+    expect(content.logs.some((l) => l.project === "nooks")).toBe(true);
   });
 
   it("never calls anything a side project", () => {

@@ -6,8 +6,17 @@ import { GLYPH_H, GLYPH_W, GLYPHS } from "./glyphs.ts";
  * from a real anatomical mesh when one is licensed — the rest of the scene only
  * relies on `positions`, `regions` and `anchors`.
  */
-export const REGIONS = ["bouldering", "djing", "gaming", "dogs"] as const;
+export const REGIONS = [
+  "bouldering",
+  "djing",
+  "gaming",
+  "dogs",
+  "tech",
+] as const;
 export type Region = (typeof REGIONS)[number];
+
+/** Regions with one lobe per hemisphere get a label on each side. */
+const MIRRORED: ReadonlySet<string> = new Set(["djing", "tech"]);
 
 export interface Vec3 {
   x: number;
@@ -49,6 +58,7 @@ export const buildBrain = (scale = 1): Brain => {
       let reg: Region | null = null;
       if (dz > 0.38) reg = "dogs";
       else if (dz < -0.5 && dy > -0.45) reg = "gaming";
+      else if (dy > 0.3 && ax > 0.3 && dz < 0.2) reg = "tech";
       else if (dy < 0.05 && ax > 0.5) reg = "djing";
       pts.push({
         x: dx * 0.82 * rr + (dx < 0 ? -0.05 : 0.05),
@@ -91,8 +101,8 @@ export const buildBrain = (scale = 1): Brain => {
     seeds[i] = (Math.sin(i * 12.9898) * 43758.5453) % 1;
     const a = acc[p.r];
     if (a) {
-      // DJing covers both temporal lobes: average one side, mirror later.
-      a.x += p.r === REGIONS.indexOf("djing") ? Math.abs(p.x) : p.x;
+      // Paired lobes (temporal, parietal): average one side, mirror later.
+      a.x += MIRRORED.has(REGIONS[p.r] ?? "") ? Math.abs(p.x) : p.x;
       a.y += p.y;
       a.z += p.z;
       a.n++;
@@ -109,7 +119,7 @@ export const buildBrain = (scale = 1): Brain => {
     const L = Math.hypot(x, y, z) || 1;
     const s = (L + 0.38) / L;
     anchors.push({ region, at: { x: x * s, y: y * s, z: z * s } });
-    if (region === "djing")
+    if (MIRRORED.has(region))
       anchors.push({ region, at: { x: -x * s, y: y * s, z: z * s } });
   });
 
@@ -146,7 +156,8 @@ export const facing = (
   while (yaw - from > Math.PI) yaw -= Math.PI * 2;
   while (yaw - from < -Math.PI) yaw += Math.PI * 2;
   const r = Math.hypot(p.x, p.z);
-  const pitch = Math.max(-1.2, Math.min(1.2, Math.atan2(p.y, r) * 0.7));
+  // Tilt toward high or low anchors, but never past a three-quarter view.
+  const pitch = Math.max(-0.75, Math.min(0.75, Math.atan2(p.y, r) * 0.6));
   return { yaw, pitch };
 };
 
@@ -155,6 +166,7 @@ export const NAMES: Record<Region, string> = {
   djing: "02 DJing",
   gaming: "03 Gaming",
   dogs: "04 Dogs",
+  tech: "05 Tech",
 };
 
 export interface ScreenAnchor {
@@ -297,7 +309,11 @@ export const drawLabels = (
     const L = Math.hypot(dx, dy) || 1;
     const reach = 1 + lv * 0.25;
     const ex = q[0] + (dx / L) * 46 * dpr * reach;
-    const ey = q[1] + (dy / L) * 30 * dpr * reach;
+    // Keep labels inside the panel, clear of the corner captions.
+    const ey = Math.min(
+      Math.max(q[1] + (dy / L) * 30 * dpr * reach, 34 * dpr),
+      h - 34 * dpr,
+    );
     const tw = ctx.measureText(NAMES[a.region].toUpperCase()).width;
     let right = dx >= 0;
     // Flip the label rather than let it clip at the panel edge.

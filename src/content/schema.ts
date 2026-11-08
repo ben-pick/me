@@ -24,9 +24,6 @@ export const ProjectFrontmatter = Schema.Struct({
   tags: Strings,
   featured: Schema.optional(Schema.Boolean),
   links: Schema.Array(Link),
-  log: Schema.Array(
-    Schema.Struct({ when: Schema.String, what: Schema.String }),
-  ),
 });
 
 export const InterestFrontmatter = Schema.Struct({
@@ -40,10 +37,12 @@ export const InterestFrontmatter = Schema.Struct({
   media: Schema.optional(Schema.String),
 });
 
-export const PostFrontmatter = Schema.Struct({
+export const LogFrontmatter = Schema.Struct({
   slug: Schema.String,
   title: Schema.String,
   date: Schema.String,
   summary: Schema.String,
+  /** Slug of the project this is a build log for, if any. */
+  project: Schema.optional(Schema.String),
   draft: Schema.optional(Schema.Boolean),
 });

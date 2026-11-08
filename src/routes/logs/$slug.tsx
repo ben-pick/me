@@ -1,10 +1,10 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { postBySlug } from "../../content/index.ts";
-import { PostPage } from "../../pages/PostPage.tsx";
+import { logBySlug } from "../../content/index.ts";
+import { LogPage } from "../../pages/LogPage.tsx";
 
-export const Route = createFileRoute("/blog/$slug")({
+export const Route = createFileRoute("/logs/$slug")({
   loader: ({ params }) => {
-    const post = postBySlug(params.slug);
+    const post = logBySlug(params.slug);
     if (!post) throw notFound();
     return post;
   },
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/blog/$slug")({
         ]
       : [],
   }),
-  component: function PostRoute() {
-    return <PostPage post={Route.useLoaderData()} />;
+  component: function LogRoute() {
+    return <LogPage log={Route.useLoaderData()} />;
   },
 });

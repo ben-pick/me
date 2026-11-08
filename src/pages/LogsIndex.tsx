@@ -1,20 +1,23 @@
 import { Link } from "@tanstack/react-router";
-import { formatDate } from "../components/Blogs.tsx";
+import { formatDate } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { SectionHeader } from "../components/ui.tsx";
 import { content } from "../content/index.ts";
 
-export function BlogIndex() {
+export function LogsIndex() {
   return (
     <div className="mx-auto flex max-w-[1216px] flex-col gap-16 px-4 pt-6 pb-16 sm:px-8">
       <Nav />
       <main id="main">
-        <SectionHeader title="Blog" caption={`${content.posts.length} posts`} />
+        <SectionHeader
+          title="Logs"
+          caption={`${content.logs.length} entries`}
+        />
         <ul className="m-0 list-none border-ink border-t p-0">
-          {content.posts.map((p, i) => (
+          {content.logs.map((p, i) => (
             <li key={p.slug} className="border-ink border-b">
               <Link
-                to="/blog/$slug"
+                to="/logs/$slug"
                 params={{ slug: p.slug }}
                 className="group relative grid grid-cols-[40px_1fr] gap-4 overflow-hidden py-6 no-underline md:grid-cols-[50px_1fr_160px]"
               >

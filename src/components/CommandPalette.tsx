@@ -33,17 +33,17 @@ const useCommands = (): Command[] => {
       // Let the palette's exit animation start before the popover enters.
       requestAnimationFrame(() => actions.openPopover(id));
     };
-    const latest = content.posts[0];
+    const latest = content.logs[0];
     const actionsList: Command[] = [
       {
-        id: "blog",
+        id: "latest-log",
         group: "Actions",
-        label: "Read the latest post",
+        label: "Read the latest log",
         hint: latest?.title ?? "",
         shortcut: "⌥1",
         run: () => {
           if (latest)
-            void navigate({ to: "/blog/$slug", params: { slug: latest.slug } });
+            void navigate({ to: "/logs/$slug", params: { slug: latest.slug } });
         },
       },
       {
@@ -142,13 +142,15 @@ const useCommands = (): Command[] => {
         hint: i.region,
         run: open({ kind: "interest", slug: i.slug }),
       })),
-      ...content.posts.map((p) => ({
+      ...content.logs.map((p) => ({
         id: `post/${p.slug}`,
-        group: "Posts",
+        group: "Logs",
         label: p.title,
-        hint: p.date,
+        hint: p.project
+          ? `${content.projects.find((x) => x.slug === p.project)?.name ?? p.project} build log · ${p.date}`
+          : p.date,
         run: () =>
-          void navigate({ to: "/blog/$slug", params: { slug: p.slug } }),
+          void navigate({ to: "/logs/$slug", params: { slug: p.slug } }),
       })),
     ];
   }, [navigate]);

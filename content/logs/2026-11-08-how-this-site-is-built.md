@@ -9,7 +9,7 @@ This site runs on the same stack as Nooks: **TanStack Start** with React 19, dep
 
 ## Content as files
 
-Companies, projects, interests and posts are Markdown files with frontmatter. A small Vite plugin parses them at build time, validates them with Effect Schema, and exposes them as a virtual module — so no Markdown parser ships to the browser.
+Companies, projects, interests and logs are Markdown files with frontmatter. A small Vite plugin parses them at build time, validates them with Effect Schema, and exposes them as a virtual module — so no Markdown parser ships to the browser.
 
 ## Interaction
 

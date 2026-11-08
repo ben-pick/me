@@ -18,10 +18,10 @@ import { CommandPalette } from "../components/CommandPalette.tsx";
 import { PopoverHost } from "../components/Popover.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
-import { postBySlug } from "../content/index.ts";
-import { BlogIndex } from "../pages/BlogIndex.tsx";
+import { logBySlug } from "../content/index.ts";
 import { Home } from "../pages/Home.tsx";
-import { PostPage } from "../pages/PostPage.tsx";
+import { LogPage } from "../pages/LogPage.tsx";
+import { LogsIndex } from "../pages/LogsIndex.tsx";
 import "../styles.css";
 
 const rootRoute = createRootRoute({
@@ -40,26 +40,26 @@ const homeRoute = createRoute({
   path: "/",
   component: Home,
 });
-const blogRoute = createRoute({
+const logsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/blog/",
-  component: BlogIndex,
+  path: "/logs/",
+  component: LogsIndex,
 });
-const postRoute = createRoute({
+const logRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/blog/$slug",
+  path: "/logs/$slug",
   loader: ({ params }) => {
-    const post = postBySlug(params.slug);
+    const post = logBySlug(params.slug);
     if (!post) throw notFound();
     return post;
   },
-  component: function PostRouteView() {
-    return <PostPage post={postRoute.useLoaderData()} />;
+  component: function LogRouteView() {
+    return <LogPage log={logRoute.useLoaderData()} />;
   },
 });
 
 const router = createRouter({
-  routeTree: rootRoute.addChildren([homeRoute, blogRoute, postRoute]),
+  routeTree: rootRoute.addChildren([homeRoute, logsRoute, logRoute]),
   history: createMemoryHistory({ initialEntries: ["/"] }),
   defaultViewTransition: true,
   scrollRestoration: true,

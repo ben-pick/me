@@ -1,3 +1,4 @@
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Dialog } from "radix-ui";
 import {
   type CSSProperties,
@@ -14,6 +15,7 @@ import {
   content,
   type Interest,
   interestBySlug,
+  logsForProject,
   type Project,
   projectBySlug,
 } from "../content/index.ts";
@@ -26,6 +28,7 @@ import {
   type Tone,
   useStore,
 } from "../lib/store.ts";
+import { formatDate } from "./Logs.tsx";
 import { Markdown } from "./Markdown.tsx";
 import { Brackets, Chip, Grain } from "./ui.tsx";
 
@@ -47,9 +50,9 @@ const usePopoverHash = (current: OpenPopover | null) => {
   const hash = current ? popoverHash(current.id) : null;
   useEffect(() => {
     const { pathname, search, hash: now } = window.location;
-    if (hash && now !== hash) history.replaceState(null, "", hash);
+    if (hash && now !== hash) history.replaceState(history.state, "", hash);
     if (!hash && parsePopoverHash(now))
-      history.replaceState(null, "", pathname + search);
+      history.replaceState(history.state, "", pathname + search);
   }, [hash]);
 };
 
@@ -247,18 +250,7 @@ const ProjectBody = ({ p }: { p: Project }) => (
         <Chip key={t}>{t}</Chip>
       ))}
     </div>
-    {p.log.length > 0 ? (
-      <div>
-        <div className="mb-1 text-[11px] uppercase opacity-60">Build log</div>
-        {p.log.map((l, n) => (
-          <Meta
-            key={`${l.when}-${l.what}-${String(n)}`}
-            k={l.when}
-            v={<span className="normal-case">{l.what}</span>}
-          />
-        ))}
-      </div>
-    ) : null}
+    <BuildLog slug={p.slug} />
     {p.links.length > 0 ? (
       <div className="flex flex-wrap gap-3">
         {p.links.map((l) => (
@@ -270,6 +262,45 @@ const ProjectBody = ({ p }: { p: Project }) => (
     ) : null}
   </>
 );
+
+/** The project's build-log entries, newest first; each opens the full log. */
+const BuildLog = ({ slug }: { slug: string }) => {
+  const logs = logsForProject(slug);
+  if (logs.length === 0) return null;
+  return (
+    <div>
+      <div className="mb-1 flex justify-between text-[11px] uppercase opacity-60">
+        <span>Build log</span>
+        <span>{logs.length} entries</span>
+      </div>
+      <ol className="m-0 list-none p-0">
+        {logs.map((l) => (
+          <li key={l.slug} className="border-current/20 border-b">
+            <Link
+              to="/logs/$slug"
+              params={{ slug: l.slug }}
+              className="group grid grid-cols-[92px_1fr_auto] items-baseline gap-3 py-2.5 text-[12px] no-underline"
+            >
+              <span className="uppercase opacity-60">{formatDate(l.date)}</span>
+              <span className="flex flex-col gap-1">
+                <span className="uppercase transition-transform duration-300 ease-out-expo group-hover:translate-x-1">
+                  {l.title}
+                </span>
+                <span className="opacity-60">{l.summary}</span>
+              </span>
+              <span
+                aria-hidden="true"
+                className="opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+              >
+                →
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+};
 
 const InterestBody = ({ i }: { i: Interest }) => (
   <>
@@ -373,6 +404,15 @@ export const PopoverHost = () => {
     if (open) setShown(open);
   }, [open]);
   usePopoverHash(open);
+
+  // Following a link out of a popover (e.g. a build log) closes it.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const lastPath = useRef(pathname);
+  useEffect(() => {
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
+    actions.closePopover();
+  }, [pathname]);
 
   const mobile = useIsMobile();
   const [panel, setPanel] = useState<HTMLDivElement | null>(null);

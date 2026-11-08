@@ -1,7 +1,7 @@
-import { Blogs } from "../components/Blogs.tsx";
 import { BrainPanel } from "../components/BrainPanel.tsx";
 import { CompanyIndex } from "../components/CompanyIndex.tsx";
 import { Contact } from "../components/Contact.tsx";
+import { Logs } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { Projects } from "../components/Projects.tsx";
 import { Terminal } from "../components/Terminal.tsx";
@@ -50,11 +50,11 @@ export function Home() {
         <CompanyIndex />
         <Projects />
         <section
-          aria-label="Terminal and blogs"
+          aria-label="Terminal and logs"
           className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3.5"
         >
           <Terminal />
-          <Blogs />
+          <Logs />
         </section>
         <Contact />
       </main>

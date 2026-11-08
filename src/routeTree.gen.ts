@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGithubRouteImport } from './routes/api/github'
-import { Route as BlogIndexRouteImport } from './routes/blog/index'
-import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as LogsIndexRouteImport } from './routes/logs/index'
+import { Route as LogsSlugRouteImport } from './routes/logs/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,49 +24,49 @@ const ApiGithubRoute = ApiGithubRouteImport.update({
   path: '/api/github',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
+const LogsIndexRoute = LogsIndexRouteImport.update({
+  id: '/logs/',
+  path: '/logs/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
+const LogsSlugRoute = LogsSlugRouteImport.update({
+  id: '/logs/$slug',
+  path: '/logs/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/github': typeof ApiGithubRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog/': typeof BlogIndexRoute
+  '/logs/$slug': typeof LogsSlugRoute
+  '/logs/': typeof LogsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/github': typeof ApiGithubRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog': typeof BlogIndexRoute
+  '/logs/$slug': typeof LogsSlugRoute
+  '/logs': typeof LogsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/github': typeof ApiGithubRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog/': typeof BlogIndexRoute
+  '/logs/$slug': typeof LogsSlugRoute
+  '/logs/': typeof LogsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/github' | '/blog/$slug' | '/blog/'
+  fullPaths: '/' | '/api/github' | '/logs/$slug' | '/logs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/github' | '/blog/$slug' | '/blog'
-  id: '__root__' | '/' | '/api/github' | '/blog/$slug' | '/blog/'
+  to: '/' | '/api/github' | '/logs/$slug' | '/logs'
+  id: '__root__' | '/' | '/api/github' | '/logs/$slug' | '/logs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiGithubRoute: typeof ApiGithubRoute
-  BlogSlugRoute: typeof BlogSlugRoute
-  BlogIndexRoute: typeof BlogIndexRoute
+  LogsSlugRoute: typeof LogsSlugRoute
+  LogsIndexRoute: typeof LogsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,18 +85,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
+    '/logs/': {
+      id: '/logs/'
+      path: '/logs'
+      fullPath: '/logs/'
+      preLoaderRoute: typeof LogsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
+    '/logs/$slug': {
+      id: '/logs/$slug'
+      path: '/logs/$slug'
+      fullPath: '/logs/$slug'
+      preLoaderRoute: typeof LogsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -105,8 +105,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiGithubRoute: ApiGithubRoute,
-  BlogSlugRoute: BlogSlugRoute,
-  BlogIndexRoute: BlogIndexRoute,
+  LogsSlugRoute: LogsSlugRoute,
+  LogsIndexRoute: LogsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -8,9 +8,6 @@ tags: [Product, MCP, Cloudflare]
 featured: true
 links:
   - { label: "[Nooks site]", href: "#" }
-log:
-  - { when: "[Date]", what: "[Build log entry]" }
-  - { when: "[Date]", what: "[Build log entry]" }
 ---
 
 Nooks lets a team build websites and internal apps on top of the connectors and design systems they already use — then share what they make through a marketplace.

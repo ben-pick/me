@@ -7,11 +7,13 @@ describe("brain points", () => {
   it("labels every region and adds a second DJing anchor", () => {
     for (const r of REGIONS)
       expect(brain.anchors.some((a) => a.region === r)).toBe(true);
-    const dj = brain.anchors.filter((a) => a.region === "djing");
-    expect(dj).toHaveLength(2);
-    // One per temporal lobe, mirrored left/right.
-    expect(dj[0]?.at.x).toBeGreaterThan(0.5);
-    expect(dj[1]?.at.x).toBeLessThan(-0.5);
+    for (const region of ["djing", "tech"]) {
+      const pair = brain.anchors.filter((a) => a.region === region);
+      expect(pair).toHaveLength(2);
+      // One per hemisphere, mirrored left/right.
+      expect(pair[0]?.at.x).toBeGreaterThan(0.4);
+      expect(pair[1]?.at.x).toBeLessThan(-0.4);
+    }
   });
 
   it("turns an anchor to face the camera", () => {

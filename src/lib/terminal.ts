@@ -25,6 +25,7 @@ export const COMMANDS: Record<string, string> = {
   ls: "list files",
   cat: "print a file — try `cat now.txt`",
   projects: "list projects",
+  logs: "latest logs and build logs",
   open: "open a popover — `open nooks`",
   gh: "recent GitHub activity",
   neofetch: "system info",
@@ -123,6 +124,19 @@ export const run = (input: string, content: Content): Result => {
         };
       return { lines: [dim(`open: nothing called "${arg}"`)] };
     }
+    case "logs":
+      return {
+        lines: [
+          ...content.logs
+            .slice(0, 6)
+            .map((l) =>
+              out(
+                `${l.date}  ${pad(l.project ? `[${l.project}]` : "", 8)}${l.title}`,
+              ),
+            ),
+          dim("⌥1 opens the latest"),
+        ],
+      };
     case "gh":
       return {
         lines: [dim("fetching github.com/ben-pick…")],

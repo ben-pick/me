@@ -9,7 +9,7 @@ import { parse as parseYaml } from "yaml";
 import {
   CompanyFrontmatter,
   InterestFrontmatter,
-  PostFrontmatter,
+  LogFrontmatter,
   ProjectFrontmatter,
 } from "./schema.ts";
 import type { Content } from "./types.ts";
@@ -64,7 +64,7 @@ export const loadContent = (root: string): Content => ({
   companies: readCollection(join(root, "companies"), CompanyFrontmatter),
   projects: readCollection(join(root, "projects"), ProjectFrontmatter),
   interests: readCollection(join(root, "interests"), InterestFrontmatter),
-  posts: readCollection(join(root, "posts"), PostFrontmatter)
+  logs: readCollection(join(root, "logs"), LogFrontmatter)
     .filter((p) => p.draft !== true)
     .sort((a, b) => b.date.localeCompare(a.date)),
 });

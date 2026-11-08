@@ -20,6 +20,10 @@ describe("terminal", () => {
     expect(text("projects")).toContain("Nooks");
   });
 
+  it("lists logs, tagging build logs with their project", () => {
+    expect(text("logs")).toContain("[nooks]");
+  });
+
   it("clears via an effect", () => {
     expect(run("clear", content).effect).toEqual({ type: "clear" });
   });

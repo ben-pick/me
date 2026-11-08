@@ -24,6 +24,8 @@ pnpm dev
 ```
 
 `pnpm check` runs typecheck, lint and tests. `pnpm deploy` builds and deploys.
+`pnpm build:artifact` builds a static, client-only copy into `dist-artifact/`
+(in-memory routing, relative paths) for hosting as a claude.ai artifact.
 
 ## Content
 
@@ -32,9 +34,9 @@ Everything on the page comes from Markdown files with frontmatter in `content/`:
 | Folder | Becomes |
 | --- | --- |
 | `content/companies/` | Index rows + company popovers (body bullets) |
-| `content/projects/` | Project cards + popovers (`log`, `links`) |
+| `content/projects/` | Project cards + popovers (`links`) |
 | `content/interests/` | Brain regions + interest popovers |
-| `content/posts/` | Blog posts at `/blog/<slug>` (latest three on the home page) |
+| `content/logs/` | Logs at `/logs/<slug>` (latest three on the home page). Add `project: <slug>` to make one a build log: it then appears in that project's card and popover. |
 
 `src/content/plugin.ts` parses them in Node at build time and validates the
 frontmatter against `src/content/schema.ts`. A bad field fails the build with
@@ -45,17 +47,17 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 | Input | Does |
 | --- | --- |
 | `⌘K` / `Ctrl+K`, or start typing | Command palette (fuzzy search) |
-| `⌥1`–`⌥5` | Latest post, copy email, experience, GitHub, book a coffee |
+| `⌥1`–`⌥5` | Latest log, copy email, experience, GitHub, book a coffee |
 | `⌘C` over the contact block | Copy email |
 | `#company/thanks`, `#project/nooks`, `#interest/djing` | Deep-link a popover |
 | Brain: drag, click, `←` `→` `↵` | Rotate with inertia, select, open |
-| Terminal | `help`, `ls`, `cat now.txt`, `projects`, `open <name>`, `gh`, `neofetch`, `sudo hire ben`, `clear` / `⌃L`, tab-complete, `↑` history |
+| Terminal | `help`, `ls`, `cat now.txt`, `projects`, `logs`, `open <name>`, `gh`, `neofetch`, `sudo hire ben`, `clear` / `⌃L`, tab-complete, `↑` history |
 
 ## Brain
 
 `src/brain/points.ts` builds the procedural point cloud (from the approved
 prototype) and draws labels; `src/brain/glyphs.ts` holds each region's animated
-dot vignette (decks, climber, controller, dog); `src/brain/scene.ts` renders the
+dot vignette (decks, climber, controller, dog, code editor); `src/brain/scene.ts` renders the
 points into an offscreen target, then a film-grain pass. The scene loads when the
 panel nears the viewport and pauses off-screen. With reduced motion or no WebGL,
 a still 2D frame stays in place and still works by click and keyboard.

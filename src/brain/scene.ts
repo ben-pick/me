@@ -11,7 +11,6 @@ import {
   Scene,
   ShaderMaterial,
   Vector2,
-  Vector4,
   WebGLRenderer,
   WebGLRenderTarget,
 } from "three";
@@ -50,21 +49,24 @@ const CAMERA_Z = 3.2;
 const pointsVertex = /* glsl */ `
   attribute float aRegion;
   attribute float aSeed;
-  uniform vec4 uSel;
-  uniform vec4 uHov;
+  uniform float uSel[${REGIONS.length}];
+  uniform float uHov[${REGIONS.length}];
   uniform float uPR;
   uniform float uScale;
   uniform float uTime;
   varying vec4 vColor;
 
-  float pick(vec4 v, float r) {
-    return r < 0.5 ? v.x : r < 1.5 ? v.y : r < 2.5 ? v.z : v.w;
-  }
-
   void main() {
     float labelled = step(-0.5, aRegion);
-    float sel = labelled * pick(uSel, aRegion);
-    float hov = labelled * pick(uHov, aRegion) * (1.0 - sel);
+    float sel = 0.0;
+    float hov = 0.0;
+    for (int i = 0; i < ${REGIONS.length}; i++) {
+      if (abs(aRegion - float(i)) < 0.5) {
+        sel = uSel[i];
+        hov = uHov[i];
+      }
+    }
+    hov *= 1.0 - sel;
 
     // Selected regions breathe outward a touch.
     vec3 p = position * (1.0 + sel * 0.025 * (0.5 + 0.5 * sin(uTime * 2.4 + aSeed * 6.0)));
@@ -156,8 +158,8 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
   geometry.setAttribute("aRegion", new BufferAttribute(brain.regions, 1));
   geometry.setAttribute("aSeed", new BufferAttribute(brain.seeds, 1));
 
-  const sel = new Vector4();
-  const hov = new Vector4();
+  const sel = REGIONS.map(() => 0);
+  const hov = REGIONS.map(() => 0);
   const uPR = { value: 1 };
   const uScale = { value: 1 };
   const uTimePts = { value: 0 };
@@ -373,13 +375,10 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
       levels[r] += ((r === selected ? 1 : 0) - levels[r]) * e;
       hoverLevels[r] += ((r === hovered ? 1 : 0) - hoverLevels[r]) * e;
     }
-    sel.set(levels.bouldering, levels.djing, levels.gaming, levels.dogs);
-    hov.set(
-      hoverLevels.bouldering,
-      hoverLevels.djing,
-      hoverLevels.gaming,
-      hoverLevels.dogs,
-    );
+    REGIONS.forEach((r, i) => {
+      sel[i] = levels[r];
+      hov[i] = hoverLevels[r];
+    });
 
     group.rotation.set(pitch, yaw, 0, "XYZ");
     const t = now / 1000;
