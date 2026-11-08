@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { site } from "../content/index.ts";
 import { copyEmail, EMAIL } from "../lib/store.ts";
 import { Grain, Kbd } from "./ui.tsx";
 
@@ -39,7 +40,7 @@ export const Contact = () => {
     >
       <Grain className="opacity-50" />
       <p className="relative m-0 max-w-[600px] font-display text-[clamp(40px,6vw,56px)] uppercase leading-[0.9] tracking-[-0.02em]">
-        Let's build something.
+        {site.contact.headline}
       </p>
       <div className="relative flex flex-col gap-2.5 text-[12px] uppercase">
         <span className="flex items-center gap-3">
@@ -55,22 +56,17 @@ export const Contact = () => {
             <Kbd>⌘C</Kbd>
           </button>
         </span>
-        <a
-          href="https://github.com/ben-pick"
-          target="_blank"
-          rel="noreferrer"
-          className={link}
-        >
-          github.com/ben-pick
-        </a>
-        <a
-          href="https://linkedin.com/in/benpick5/"
-          target="_blank"
-          rel="noreferrer"
-          className={link}
-        >
-          linkedin.com/in/benpick5
-        </a>
+        {[site.contact.github, site.contact.linkedin].map((href) => (
+          <a
+            key={href}
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            className={link}
+          >
+            {href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+          </a>
+        ))}
       </div>
     </section>
   );

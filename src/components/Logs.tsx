@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { content, projectBySlug } from "../content/index.ts";
+import { content, projectBySlug, site } from "../content/index.ts";
 import { Kbd } from "./ui.tsx";
 
 export const formatDate = (iso: string) =>
@@ -14,14 +14,14 @@ export const Logs = () => (
   <div className="flex flex-col gap-2.5 border border-ink p-7">
     <div className="flex justify-between text-[11px] uppercase text-muted">
       <Link to="/logs" className="no-underline hover:text-ink">
-        Logs
+        {site.sections.logs.title}
       </Link>
       <span className="flex items-center gap-2">
         Latest <Kbd>⌥1</Kbd>
       </span>
     </div>
     <ul className="m-0 list-none p-0">
-      {content.logs.slice(0, 3).map((p) => (
+      {content.logs.slice(0, 5).map((p) => (
         <li key={p.slug} className="border-ink border-b last:border-b-0">
           <Link
             to="/logs/$slug"

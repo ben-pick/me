@@ -1,7 +1,7 @@
 # Benjamin Pick — portfolio
 
-A single-page portfolio with a ⌘K command palette, a terminal, popovers for every
-company, project and interest, and a WebGL point-cloud brain.
+A single-page portfolio with a ⌘K command palette, popovers for every
+company, project and interest, a GitHub contribution graph and a WebGL point-cloud brain.
 
 ## Stack
 
@@ -29,7 +29,9 @@ pnpm dev
 
 ## Content
 
-Everything on the page comes from Markdown files with frontmatter in `content/`:
+Everything on the page comes from `content/`: `site.json` for the page copy, and
+Markdown files with frontmatter for everything else. See
+[`content/README.md`](content/README.md) for every field.
 
 | Folder | Becomes |
 | --- | --- |
@@ -51,15 +53,12 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 | `⌘C` over the contact block | Copy email |
 | `#company/thanks`, `#project/nooks`, `#interest/djing` | Deep-link a popover |
 | Brain: drag, click, `←` `→` `↵` | Rotate with inertia, select, open |
-| Terminal | `help`, `ls`, `cat now.txt`, `projects`, `logs`, `open <name>`, `gh`, `neofetch`, `sudo hire ben`, `clear` / `⌃L`, tab-complete, `↑` history |
 
 ## Motion
 
 - **Boot**: first visit per session plays a short terminal boot, then wipes away; the
   name drops in letter by letter and the brain's dots fly in. Skipped on repeat
   visits and with reduced motion (an inline script in the root decides before paint).
-- **Cursor**: on fine pointers, corner brackets glide to frame whatever you hover, with
-  a label (`data-cursor="…"` overrides it).
 - **Company previews**: each row has an animated preview that trails the cursor. Scenes
   are shaded vector drawings (`src/brain/company-glyphs.ts`) rendered off-screen and
   converted to the brain's square-dot halftone, with dot size following brightness.
@@ -71,7 +70,7 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 Spotify's embedded player (it opens under the hero on first play); an audio file in
 `public/` set as `audio:` takes precedence and drives the meter from the real signal.
 The static artifact build can't embed Spotify, so there the button opens the track. Playing it pulses the brain's DJing
-region. `play` in the terminal does the same.
+region.
 
 ## Brain
 
@@ -87,17 +86,12 @@ the mesh and keep the same `positions` / `regions` / `anchors` shape.
 
 ## GitHub contributions
 
-`/api/contributions` returns the last year of contributions for `GITHUB_USER`, cached
+`/api/contributions` returns the last year of contributions for `github.user` in `content/site.json`, cached
 at the edge for six hours. With a `GITHUB_TOKEN` secret it uses GitHub's GraphQL API;
 without one it reads the public calendar at `github.com/users/<user>/contributions`.
 The Activity section draws it as a halftone grid. The static artifact build has no
 server, so there it shows the empty grid.
 
-## GitHub activity
-
-`/api/github` fetches public events for `GITHUB_USER` and caches them at the edge
-for ten minutes. Set a `GITHUB_TOKEN` secret (`wrangler secret put GITHUB_TOKEN`)
-for higher rate limits. The terminal's `gh` command reads it.
 
 ## Deploy
 

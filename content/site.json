@@ -1,0 +1,47 @@
+{
+  "name": {
+    "first": "Benjamin",
+    "last": "Pick"
+  },
+  "role": "Software Engineer",
+  "location": "Sydney",
+  "coordinates": "33.87°S 151.21°E",
+  "tags": ["Senior SWE @ Thanks", "ex-Staff SWE @ CommBank", "UNSW Comp Sci"],
+  "intro": "Software engineer with a holistic knowledge of engineering, AI and design. I build rapid, innovative products in fast-paced teams — full-stack web apps and cloud architecture — and I'm building Nooks.",
+  "seo": {
+    "title": "Benjamin Pick — Software Engineer, Sydney",
+    "description": "Software engineer with a holistic knowledge of engineering, AI and design. Senior SWE at Thanks, ex-Staff SWE at CommBank, building Nooks."
+  },
+  "contact": {
+    "headline": "Let's build something.",
+    "email": "bendavidpick@gmail.com",
+    "github": "https://github.com/ben-pick",
+    "linkedin": "https://linkedin.com/in/benpick5/",
+    "coffee": {
+      "subject": "Coffee?",
+      "body": "Hi Ben,\n\nFancy a coffee in Sydney sometime? I'm free on …\n\n"
+    }
+  },
+  "github": {
+    "user": "ben-pick"
+  },
+  "sections": {
+    "companies": {
+      "title": "Companies",
+      "caption": "Click a row for the full story"
+    },
+    "projects": {
+      "title": "Projects",
+      "caption": "Things I'm building"
+    },
+    "activity": {
+      "title": "Activity"
+    },
+    "logs": {
+      "title": "Logs"
+    }
+  },
+  "brain": {
+    "caption": "Inside my head"
+  }
+}

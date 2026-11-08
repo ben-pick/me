@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Dialog } from "radix-ui";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { content } from "../content/index.ts";
+import { content, site } from "../content/index.ts";
 import { cx } from "../lib/cx.ts";
 import { fuzzyFilter } from "../lib/fuzzy.ts";
 import type { PopoverId } from "../lib/popover-id.ts";
@@ -65,10 +65,9 @@ const useCommands = (): Command[] => {
         id: "github",
         group: "Actions",
         label: "Open GitHub",
-        hint: "github.com/ben-pick",
+        hint: site.contact.github.replace(/^https?:\/\//, ""),
         shortcut: "⌥4",
-        run: () =>
-          window.open("https://github.com/ben-pick", "_blank", "noopener"),
+        run: () => window.open(site.contact.github, "_blank", "noopener"),
       },
       {
         id: "coffee",
@@ -77,7 +76,7 @@ const useCommands = (): Command[] => {
         hint: "Drafts an email",
         shortcut: "⌥5",
         run: () => {
-          window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent("Coffee?")}&body=${encodeURIComponent("Hi Ben,\n\nFancy a coffee in Sydney sometime? I'm free on …\n\n")}`;
+          window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(site.contact.coffee.subject)}&body=${encodeURIComponent(site.contact.coffee.body)}`;
         },
       },
       {
@@ -85,21 +84,6 @@ const useCommands = (): Command[] => {
         group: "Navigate",
         label: "Go to projects",
         run: () => goHome(navigate, "projects"),
-      },
-      {
-        id: "terminal",
-        group: "Navigate",
-        label: "Open the terminal",
-        run: () => {
-          goHome(navigate, "terminal");
-          setTimeout(
-            () =>
-              document
-                .getElementById("terminal-input")
-                ?.focus({ preventScroll: true }),
-            400,
-          );
-        },
       },
       {
         id: "contact",
@@ -111,12 +95,7 @@ const useCommands = (): Command[] => {
         id: "linkedin",
         group: "Navigate",
         label: "Open LinkedIn",
-        run: () =>
-          window.open(
-            "https://linkedin.com/in/benpick5/",
-            "_blank",
-            "noopener",
-          ),
+        run: () => window.open(site.contact.linkedin, "_blank", "noopener"),
       },
     ];
     return [

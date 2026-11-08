@@ -6,7 +6,7 @@ import { Logs } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { NowPlaying } from "../components/NowPlaying.tsx";
 import { Projects } from "../components/Projects.tsx";
-import { Terminal } from "../components/Terminal.tsx";
+import { site } from "../content/index.ts";
 
 /**
  * The name drops in letter by letter once the boot panel has gone. The delay
@@ -31,12 +31,6 @@ const Letters = ({ word, offset }: { word: string; offset: number }) => (
   </span>
 );
 
-const TAGS = [
-  "Senior SWE @ Thanks",
-  "ex-Staff SWE @ CommBank",
-  "UNSW Comp Sci",
-];
-
 export function Home() {
   return (
     <div className="mx-auto flex max-w-[1216px] flex-col gap-16 px-4 pt-6 pb-16 sm:px-8">
@@ -45,11 +39,11 @@ export function Home() {
         <header className="grid grid-cols-1 items-end gap-10 md:grid-cols-2">
           <div className="flex flex-col gap-5">
             <h1 className="m-0 font-display text-[clamp(56px,7.6vw,104px)] uppercase leading-[0.86] tracking-[-0.02em]">
-              <Letters word="Benjamin" offset={0} />
-              <Letters word="Pick" offset={8} />
+              <Letters word={site.name.first} offset={0} />
+              <Letters word={site.name.last} offset={site.name.first.length} />
             </h1>
             <div className="flex flex-wrap gap-1.5 text-[11px] uppercase">
-              {TAGS.map((t, i) => (
+              {site.tags.map((t, i) => (
                 <span
                   key={t}
                   style={{
@@ -64,23 +58,17 @@ export function Home() {
           </div>
           <div className="flex flex-col gap-4">
             <BrainPanel />
-            <p className="m-0 max-w-[480px] leading-normal">
-              Software engineer with a holistic knowledge of engineering, AI and
-              design. I build rapid, innovative products in fast-paced teams —
-              full-stack web apps and cloud architecture — and I'm building
-              Nooks.
-            </p>
+            <p className="m-0 max-w-[480px] leading-normal">{site.intro}</p>
             <NowPlaying host />
           </div>
         </header>
         <CompanyIndex />
         <Projects />
-        <ContributionGraph />
         <section
-          aria-label="Terminal and logs"
-          className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3.5"
+          aria-label="Activity and logs"
+          className="grid gap-3.5 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]"
         >
-          <Terminal />
+          <ContributionGraph />
           <Logs />
         </section>
         <Contact />

@@ -1,5 +1,5 @@
 import { type CSSProperties, useRef, useState } from "react";
-import { content } from "../content/index.ts";
+import { content, site } from "../content/index.ts";
 import { cx } from "../lib/cx.ts";
 import { actions, anchorFrom } from "../lib/store.ts";
 import { SectionHeader } from "./ui.tsx";
@@ -28,8 +28,8 @@ export const CompanyIndex = () => {
     <section aria-labelledby="experience" className="scroll-mt-6 flex flex-col">
       <SectionHeader
         id="experience"
-        title="Companies"
-        caption="Click a row for the full story"
+        title={site.sections.companies.title}
+        caption={site.sections.companies.caption}
       />
       <div
         className={cx(

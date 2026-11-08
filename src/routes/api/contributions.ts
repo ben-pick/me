@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createFileRoute } from "@tanstack/react-router";
+import { site } from "../../content/index.ts";
 import {
   fromGraphql,
   parseContributionsHtml,
@@ -65,7 +66,7 @@ export const Route = createFileRoute("/api/contributions")({
         );
         const hit = await cache.match(key);
         if (hit) return hit;
-        const user = env.GITHUB_USER;
+        const user = site.github.user;
         const token = (env as { GITHUB_TOKEN?: string }).GITHUB_TOKEN;
         try {
           const data = token

@@ -95,7 +95,6 @@ export const NowPlaying = ({
             target="_blank"
             rel="noreferrer"
             aria-label="Play on Spotify"
-            data-cursor="Play on Spotify ↗"
             className={buttonClass}
           >
             {icon}
@@ -112,7 +111,6 @@ export const NowPlaying = ({
                   : "Play my current favourite song"
             }
             aria-pressed={playing}
-            data-cursor={playing ? "Pause" : playable ? "Play" : "No song yet"}
             className={buttonClass}
           >
             {icon}

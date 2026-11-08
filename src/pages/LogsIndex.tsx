@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { formatDate } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { SectionHeader } from "../components/ui.tsx";
-import { content } from "../content/index.ts";
+import { content, site } from "../content/index.ts";
 
 export function LogsIndex() {
   return (
@@ -10,7 +10,7 @@ export function LogsIndex() {
       <Nav />
       <main id="main">
         <SectionHeader
-          title="Logs"
+          title={site.sections.logs.title}
           caption={`${content.logs.length} entries`}
         />
         <ul className="m-0 list-none border-ink border-t p-0">

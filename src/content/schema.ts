@@ -57,3 +57,34 @@ export const NowPlayingFrontmatter = Schema.Struct({
   /** Why it's on repeat — one line. */
   note: Schema.optional(Schema.String),
 });
+
+const Section = Schema.Struct({
+  title: Schema.String,
+  caption: Schema.optional(Schema.String),
+});
+
+/** Everything on the page that isn't a company, project, interest, log or song. */
+export const SiteSchema = Schema.Struct({
+  name: Schema.Struct({ first: Schema.String, last: Schema.String }),
+  role: Schema.String,
+  location: Schema.String,
+  coordinates: Schema.String,
+  tags: Strings,
+  intro: Schema.String,
+  seo: Schema.Struct({ title: Schema.String, description: Schema.String }),
+  contact: Schema.Struct({
+    headline: Schema.String,
+    email: Schema.String,
+    github: Schema.String,
+    linkedin: Schema.String,
+    coffee: Schema.Struct({ subject: Schema.String, body: Schema.String }),
+  }),
+  github: Schema.Struct({ user: Schema.String }),
+  sections: Schema.Struct({
+    companies: Section,
+    projects: Section,
+    activity: Section,
+    logs: Section,
+  }),
+  brain: Schema.Struct({ caption: Schema.String }),
+});

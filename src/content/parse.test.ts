@@ -34,6 +34,12 @@ describe("loadContent", () => {
     ]);
   });
 
+  it("loads the page copy from site.json", () => {
+    expect(content.site.name.first.length).toBeGreaterThan(0);
+    expect(content.site.contact.email).toContain("@");
+    expect(content.site.tags.length).toBeGreaterThan(0);
+  });
+
   it("sorts logs newest first", () => {
     const dates = content.logs.map((p) => p.date);
     expect([...dates].sort().reverse()).toEqual(dates);

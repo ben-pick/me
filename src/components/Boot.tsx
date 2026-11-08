@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { content } from "../content/index.ts";
+import { content, site } from "../content/index.ts";
 import { actions } from "../lib/store.ts";
 import { Grain } from "./ui.tsx";
 
 const LINES = [
-  "BENJAMIN PICK — INDEX",
-  "SYDNEY 33.87°S 151.21°E",
+  `${site.name.first} ${site.name.last} — INDEX`.toUpperCase(),
+  `${site.location} ${site.coordinates}`.toUpperCase(),
   `MOUNTING CORTEX ${".".repeat(10)} OK`,
   `MAPPING ${content.interests.length} REGIONS ${".".repeat(6)} OK`,
   `INDEXING ${content.companies.length} ROLES, ${content.logs.length} LOGS ${".".repeat(2)} OK`,

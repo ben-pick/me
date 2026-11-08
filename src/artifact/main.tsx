@@ -17,7 +17,6 @@ import { createRoot } from "react-dom/client";
 import { BOOT_KEY, Boot } from "../components/Boot.tsx";
 import { CommandPalette } from "../components/CommandPalette.tsx";
 import { CompanyPreview } from "../components/CompanyPreview.tsx";
-import { Cursor } from "../components/Cursor.tsx";
 import { PopoverHost } from "../components/Popover.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
@@ -32,7 +31,6 @@ const rootRoute = createRootRoute({
     <>
       <Outlet />
       <Boot />
-      <Cursor />
       <CompanyPreview />
       <PopoverHost />
       <CommandPalette />

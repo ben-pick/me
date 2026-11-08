@@ -1,5 +1,10 @@
 import { type PointerEvent, useRef } from "react";
-import { content, logsForProject, type Project } from "../content/index.ts";
+import {
+  content,
+  logsForProject,
+  type Project,
+  site,
+} from "../content/index.ts";
 import { cx } from "../lib/cx.ts";
 import { actions, anchorFrom } from "../lib/store.ts";
 import { formatDate } from "./Logs.tsx";
@@ -114,8 +119,8 @@ export const Projects = () => {
     <section aria-labelledby="projects" className="scroll-mt-6 flex flex-col">
       <SectionHeader
         id="projects"
-        title="Projects"
-        caption="Things I'm building"
+        title={site.sections.projects.title}
+        caption={site.sections.projects.caption}
       />
       <div
         className={cx(

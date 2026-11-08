@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { site } from "../content/index.ts";
 import type { PopoverId } from "./popover-id.ts";
 
 export type Tone = "ink" | "cream";
@@ -132,7 +133,7 @@ export const actions = {
   },
 };
 
-export const EMAIL = "bendavidpick@gmail.com";
+export const EMAIL = site.contact.email;
 
 export const copyEmail = async () => {
   try {

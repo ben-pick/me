@@ -321,103 +321,209 @@ const bouldering: SceneFn = (c, t) => {
 
 /* --------------------------------------------------------------- Gaming */
 
-/** A shaded pad: d-pad taps, face buttons fire a combo, sticks circle. */
+/**
+ * PC gaming, first person: the view tracks a strafing enemy down a corridor;
+ * each shot kicks the gun, flashes the muzzle and lands a hit marker. WASD
+ * light up as the player strafes and the mouse clicks with every shot.
+ */
 const gaming: SceneFn = (c, t) => {
-  // Body silhouette with grips
-  c.fillStyle = shade(c, -30, 46, 210, 60);
+  const SX = -48;
+  const SY = -50;
+  const SW = 96;
+  const SH = 56;
+  const cx = 0;
+  const cy = SY + SH / 2 - 2;
+
+  // Enemy strafes; the camera follows a beat behind, so aim drifts on and off.
+  const enemy = Math.sin(t * 0.75) * 30;
+  const cam = Math.sin((t - 0.35) * 0.75) * 30;
+  const camVel = Math.cos((t - 0.35) * 0.75);
+  const rel = enemy - cam;
+  const shot = (t * 1.4) % 1;
+  const firing = shot < 0.14;
+  const onTarget = Math.abs(rel) < 7;
+  const hitFlash = onTarget && shot > 0.05 && shot < 0.3;
+  const kick = firing ? 1 - shot / 0.14 : 0;
+
+  // The monitor fills most of the frame so the FPS reads at callout size.
+  c.save();
+  c.translate(0, 18);
+  c.scale(1.38, 1.38);
+  glow(c, 0, -18, 70, 45);
+  c.fillStyle = shade(c, -54, 12, 190, 80);
+  rr(c, SX - 4, SY - 4, SW + 8, SH + 10, 4);
+  c.fill();
+  c.save();
   c.beginPath();
-  c.moveTo(-40, -26);
-  c.bezierCurveTo(-20, -32, 20, -32, 40, -26);
-  c.bezierCurveTo(60, -20, 70, 10, 66, 34);
-  c.bezierCurveTo(63, 48, 46, 50, 38, 38);
-  c.bezierCurveTo(30, 26, 22, 18, 0, 18);
-  c.bezierCurveTo(-22, 18, -30, 26, -38, 38);
-  c.bezierCurveTo(-46, 50, -63, 48, -66, 34);
-  c.bezierCurveTo(-70, 10, -60, -20, -40, -26);
+  c.rect(SX, SY, SW, SH);
+  c.clip();
+  // Recoil nudges the whole view up a touch
+  c.translate(0, -kick * 1.5);
+  const vx = cx - cam * 0.35;
+  const horizon = cy + 2;
+  // Ceiling + floor
+  c.fillStyle = shade(c, SY, horizon, 12, 40);
+  c.fillRect(SX, SY, SW, horizon - SY);
+  c.fillStyle = shade(c, horizon, SY + SH, 40, 95);
+  c.fillRect(SX, horizon, SW, SY + SH - horizon);
+  // Corridor walls
+  c.fillStyle = shade(c, SY, SY + SH, 75, 25);
+  c.beginPath();
+  c.moveTo(SX, SY);
+  c.lineTo(vx - 14, horizon - 12);
+  c.lineTo(vx - 14, horizon + 6);
+  c.lineTo(SX, SY + SH);
   c.closePath();
   c.fill();
-  // Top highlight
-  c.strokeStyle = gray(255, 0.6);
-  c.lineWidth = 1.5;
+  c.fillStyle = shade(c, SY, SY + SH, 60, 20);
   c.beginPath();
-  c.moveTo(-36, -24);
-  c.bezierCurveTo(-18, -29, 18, -29, 36, -24);
+  c.moveTo(SX + SW, SY);
+  c.lineTo(vx + 14, horizon - 12);
+  c.lineTo(vx + 14, horizon + 6);
+  c.lineTo(SX + SW, SY + SH);
+  c.closePath();
+  c.fill();
+  // Far doorway glow
+  glow(c, vx, horizon - 3, 10, 150);
+  // Floor lines converging on the vanishing point, scrolling toward us
+  c.strokeStyle = gray(160, 0.35);
+  c.lineWidth = 1;
+  for (let k = -3; k <= 3; k++) {
+    c.beginPath();
+    c.moveTo(vx + k * 3, horizon + 6);
+    c.lineTo(cx + k * 30 - cam * 0.6, SY + SH);
+    c.stroke();
+  }
+  for (let k = 0; k < 5; k++) {
+    const d = ((k + ((t * 0.8) % 1)) / 5) ** 2;
+    const y = horizon + 6 + d * (SY + SH - horizon - 6);
+    c.globalAlpha = d;
+    c.beginPath();
+    c.moveTo(SX, y);
+    c.lineTo(SX + SW, y);
+    c.stroke();
+  }
+  c.globalAlpha = 1;
+  // Enemy: head + shoulders, flashes on a hit
+  const ex = cx + rel;
+  const ey = horizon - 2;
+  c.fillStyle = hitFlash ? gray(255) : shade(c, ey - 16, ey + 6, 235, 120);
+  c.beginPath();
+  c.arc(ex, ey - 12, 3.6, 0, TAU);
+  c.fill();
+  rr(c, ex - 6, ey - 8, 12, 15, 3);
+  c.fill();
+  if (hitFlash) glow(c, ex, ey - 6, 12, 255);
+  // Crosshair
+  c.strokeStyle = gray(255);
+  c.lineWidth = 1.4;
+  const gap = 3 + kick * 3;
+  c.beginPath();
+  c.moveTo(cx - gap - 5, cy);
+  c.lineTo(cx - gap, cy);
+  c.moveTo(cx + gap, cy);
+  c.lineTo(cx + gap + 5, cy);
+  c.moveTo(cx, cy - gap - 5);
+  c.lineTo(cx, cy - gap);
+  c.moveTo(cx, cy + gap);
+  c.lineTo(cx, cy + gap + 5);
   c.stroke();
-  // Shoulder buttons
-  c.fillStyle = gray(Math.sin(t * 3) > 0.7 ? 255 : 140);
-  rr(c, -48, -34, 22, 6, 3);
+  // Hit marker
+  if (hitFlash) {
+    c.lineWidth = 1.8;
+    c.beginPath();
+    for (const [dx, dy] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ] as const) {
+      c.moveTo(cx + dx * 4, cy + dy * 4);
+      c.lineTo(cx + dx * 8, cy + dy * 8);
+    }
+    c.stroke();
+  }
+  c.restore();
+
+  // Gun (outside the recoil translate so it kicks on its own), clipped to screen
+  c.save();
+  c.beginPath();
+  c.rect(SX, SY, SW, SH);
+  c.clip();
+  const gx = 22 + kick * 3;
+  const gy = SY + SH - 2 + kick * 4;
+  c.fillStyle = shade(c, gy - 22, gy, 210, 70);
+  c.beginPath();
+  c.moveTo(gx - 6, gy - 20);
+  c.lineTo(gx + 4, gy - 22);
+  c.lineTo(gx + 22, gy);
+  c.lineTo(gx + 2, gy);
+  c.closePath();
   c.fill();
-  c.fillStyle = gray(140);
-  rr(c, 26, -34, 22, 6, 3);
-  c.fill();
-  // D-pad
-  const dir = Math.floor(t * 2.5) % 4;
-  c.fillStyle = gray(35);
-  c.fillRect(-44, -10, 24, 8);
-  c.fillRect(-36, -18, 8, 24);
-  c.fillStyle = gray(255);
-  const dpad: Array<[number, number, number, number]> = [
-    [-36, -18, 8, 8],
-    [-28, -10, 8, 8],
-    [-36, -2, 8, 8],
-    [-44, -10, 8, 8],
-  ];
-  const d = dpad[dir];
-  if (d) c.fillRect(d[0], d[1], d[2], d[3]);
-  // Face buttons with a combo
-  const combo = [0, 2, 1, 3, 0, 0, 1];
-  const beat = t * 5;
-  const pressed = combo[Math.floor(beat) % combo.length] ?? 0;
-  const btns: ReadonlyArray<[number, number]> = [
-    [32, -16],
-    [42, -6],
-    [32, 4],
-    [22, -6],
-  ];
-  btns.forEach(([x, y], i) => {
-    const on = i === pressed;
-    c.fillStyle = radial(
-      c,
-      x,
-      y + (on ? 1 : 0),
-      5,
-      on ? 255 : 120,
-      on ? 200 : 40,
-    );
+  c.fillStyle = gray(240);
+  c.fillRect(gx - 4, gy - 21, 6, 2);
+  if (firing) {
+    glow(c, gx - 6, gy - 22, 14 * kick + 4, 255);
+    c.fillStyle = gray(255);
     c.beginPath();
-    c.arc(x, y + (on ? 1 : 0), 5, 0, TAU);
-    c.fill();
-    if (on) glow(c, x, y, 12 * (1 - (beat % 1)), 255);
-  });
-  // Thumbsticks
-  for (const [x, ph] of [
-    [-16, 0],
-    [16, 1.7],
-  ] as const) {
-    c.fillStyle = gray(25);
-    c.beginPath();
-    c.arc(x, 12, 9, 0, TAU);
-    c.fill();
-    c.fillStyle = radial(
-      c,
-      x + Math.cos(t * 2.5 + ph) * 3,
-      12 + Math.sin(t * 2.5 + ph) * 3,
-      6,
-      240,
-      90,
-    );
-    c.beginPath();
-    c.arc(
-      x + Math.cos(t * 2.5 + ph) * 3,
-      12 + Math.sin(t * 2.5 + ph) * 3,
-      6,
-      0,
-      TAU,
-    );
+    c.moveTo(gx - 12, gy - 26);
+    c.lineTo(gx - 4, gy - 22);
+    c.lineTo(gx - 10, gy - 18);
+    c.closePath();
     c.fill();
   }
-  // Home light
-  glow(c, 0, -14, 6 + Math.sin(t * 2) * 2, 230);
+  // HUD: health bar + ammo pips
+  c.fillStyle = gray(70);
+  c.fillRect(SX + 4, SY + SH - 6, 26, 3);
+  c.fillStyle = gray(235);
+  c.fillRect(SX + 4, SY + SH - 6, 20, 3);
+  const ammo = 12 - (Math.floor(t * 1.4) % 13);
+  for (let k = 0; k < 12; k++) {
+    c.fillStyle = gray(k < ammo ? 230 : 60);
+    c.fillRect(SX + 4 + k * 2.5, SY + SH - 11, 1.5, 3);
+  }
+  c.restore();
+  // Screen sheen + stand
+  const sheen = c.createLinearGradient(SX, SY, 0, SY + SH);
+  sheen.addColorStop(0, gray(255, 0.08));
+  sheen.addColorStop(0.5, gray(255, 0));
+  c.fillStyle = sheen;
+  c.fillRect(SX, SY, SW, SH);
+  c.restore();
+
+  // Compact WASD cluster: W held, A/D as the view strafes
+  const pressed = new Set<string>(["W"]);
+  if (camVel > 0.35) pressed.add("D");
+  if (camVel < -0.35) pressed.add("A");
+  const keys: ReadonlyArray<[string, number, number]> = [
+    ["W", -40, 38],
+    ["A", -49, 46],
+    ["S", -40, 46],
+    ["D", -31, 46],
+  ];
+  for (const [k2, x, y] of keys) {
+    const on = pressed.has(k2);
+    c.fillStyle = on ? gray(255) : shade(c, y, y + 7, 150, 80);
+    rr(c, x - 4, y + (on ? 1 : 0), 8, 7, 1.5);
+    c.fill();
+    if (on) glow(c, x, y + 4, 9, 200);
+  }
+  c.fillStyle = shade(c, 46, 53, 130, 70);
+  rr(c, -20, 46, 34, 7, 1.5);
+  c.fill();
+
+  // Mouse follows the aim; left button flashes with each shot
+  const mx = 44 + cam * 0.15;
+  const my = 46;
+  c.fillStyle = radial(c, mx, my, 9, 230, 90);
+  c.beginPath();
+  c.ellipse(mx, my, 6.5, 8.5, 0, 0, TAU);
+  c.fill();
+  c.fillStyle = gray(firing ? 255 : 120);
+  c.beginPath();
+  c.ellipse(mx - 3, my - 4, 3, 4, 0, Math.PI, TAU);
+  c.fill();
+  if (firing) glow(c, mx - 3, my - 6, 8, 255);
 };
 
 /* ----------------------------------------------------------------- Dogs */

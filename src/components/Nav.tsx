@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useRef } from "react";
+import { site } from "../content/index.ts";
 import { scramble } from "../lib/scramble.ts";
 import { actions } from "../lib/store.ts";
 import { Kbd } from "./ui.tsx";
@@ -33,10 +34,10 @@ const NAV = [
 export const Nav = () => (
   <nav className="grid grid-cols-[1fr_auto] items-center gap-4 border-ink border-b pb-4 text-[12px] uppercase md:grid-cols-3">
     <Link to="/" className="no-underline">
-      Benjamin Pick — Index
+      {site.name.first} {site.name.last} — Index
     </Link>
     <span className="hidden text-center md:block">
-      Software Engineer / Sydney
+      {site.role} / {site.location}
     </span>
     <div className="flex items-center justify-end gap-5">
       {NAV.map((n) => (

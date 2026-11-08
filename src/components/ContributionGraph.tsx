@@ -1,11 +1,12 @@
 import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
+import { site } from "../content/index.ts";
 import { STATIC_BUILD } from "../lib/audio.ts";
 import { type Contributions, type Day, toWeeks } from "../lib/contributions.ts";
 import { cx } from "../lib/cx.ts";
 import { useInView } from "../lib/hooks.ts";
-import { Grain, SectionHeader } from "./ui.tsx";
+import { Grain } from "./ui.tsx";
 
-const USER = "ben-pick";
+const USER = site.github.user;
 /** Dot size and brightness for GitHub's 0–4 levels, as a share of the cell. */
 const SIZE = [0.2, 0.42, 0.6, 0.78, 0.96];
 const ALPHA = [0.22, 0.55, 0.75, 0.9, 1];
@@ -65,7 +66,7 @@ const useContributions = (enabled: boolean) => {
  * bigger, brighter dots. Columns fill in week by week as it scrolls into view.
  */
 export const ContributionGraph = () => {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const seen = useInView(ref, "0px 0px -10% 0px");
   const { data, status } = useContributions(seen);
@@ -113,140 +114,133 @@ export const ContributionGraph = () => {
   };
 
   return (
-    <section aria-labelledby="activity" className="flex flex-col">
-      <SectionHeader
-        id="activity"
-        title="Activity"
-        caption={
-          <a
-            href={`https://github.com/${USER}`}
-            target="_blank"
-            rel="noreferrer"
-            className="no-underline hover:text-ink"
-          >
-            github.com/{USER} ↗
-          </a>
-        }
-      />
-      <div
-        ref={ref}
-        className="relative overflow-hidden bg-ink p-6 text-cream md:p-7"
-      >
-        <Grain className="opacity-40" />
-        <div className="relative mb-5 flex flex-wrap items-baseline justify-between gap-3 text-[11px] uppercase">
-          <span className="flex items-baseline gap-3">
-            {status === "ready" && data ? (
-              <>
-                <span className="font-display text-[40px] leading-none tracking-[-0.02em]">
-                  {data.total.toLocaleString("en-AU")}
-                </span>
-                <span className="text-soft">
-                  contributions in the last year
-                </span>
-              </>
-            ) : (
-              <span className="text-soft">
-                {status === "loading"
-                  ? "Reading GitHub…"
-                  : "Live on the deployed site"}
+    <section
+      ref={ref}
+      aria-labelledby="activity"
+      className="relative flex min-w-0 flex-col overflow-hidden bg-ink p-6 text-cream md:p-7"
+    >
+      <Grain className="opacity-40" />
+      <div className="relative mb-4 flex justify-between gap-3 text-[11px] uppercase text-soft">
+        <h2 id="activity" className="m-0 font-mono text-[11px] font-normal">
+          {site.sections.activity.title}
+        </h2>
+        <a
+          href={`https://github.com/${USER}`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-soft no-underline hover:text-cream"
+        >
+          github.com/{USER} ↗
+        </a>
+      </div>
+      <div className="relative mb-5 flex flex-wrap items-baseline justify-between gap-3 text-[11px] uppercase">
+        <span className="flex items-baseline gap-3">
+          {status === "ready" && data ? (
+            <>
+              <span className="font-display text-[40px] leading-none tracking-[-0.02em]">
+                {data.total.toLocaleString("en-AU")}
               </span>
-            )}
-          </span>
-          <span
-            className="flex items-center gap-2 text-soft"
+              <span className="text-soft">contributions in the last year</span>
+            </>
+          ) : (
+            <span className="text-soft">
+              {status === "loading"
+                ? "Reading GitHub…"
+                : "Live on the deployed site"}
+            </span>
+          )}
+        </span>
+        <span className="flex items-center gap-2 text-soft" aria-hidden="true">
+          Less
+          {SIZE.map((s, i) => (
+            <span key={s} className="grid size-[11px] place-items-center">
+              <span
+                className="block bg-cream"
+                style={{
+                  width: `${s * 100}%`,
+                  height: `${s * 100}%`,
+                  opacity: ALPHA[i],
+                }}
+              />
+            </span>
+          ))}
+          More
+        </span>
+      </div>
+      <p className="sr-only">
+        {status === "ready" && data
+          ? `${data.total} GitHub contributions in the last year${busiest && busiest.count > 0 ? `; busiest day ${fmt(busiest.date)} with ${busiest.count}.` : "."}`
+          : "GitHub contribution graph."}
+      </p>
+      <div
+        ref={scroller}
+        className="relative overflow-x-auto pb-1 [scrollbar-width:thin]"
+      >
+        <div className="min-w-[520px]">
+          <div
             aria-hidden="true"
+            className="mb-1.5 grid grid-cols-[repeat(53,minmax(0,1fr))] text-[10px] uppercase text-soft"
           >
-            Less
-            {SIZE.map((s, i) => (
-              <span key={s} className="grid size-[11px] place-items-center">
-                <span
-                  className="block bg-cream"
-                  style={{
-                    width: `${s * 100}%`,
-                    height: `${s * 100}%`,
-                    opacity: ALPHA[i],
-                  }}
-                />
+            {months.map((m, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: one label slot per week column
+              <span key={i} className="overflow-visible whitespace-nowrap">
+                {m}
               </span>
             ))}
-            More
-          </span>
-        </div>
-        <p className="sr-only">
-          {status === "ready" && data
-            ? `${data.total} GitHub contributions in the last year${busiest && busiest.count > 0 ? `; busiest day ${fmt(busiest.date)} with ${busiest.count}.` : "."}`
-            : "GitHub contribution graph."}
-        </p>
-        <div
-          ref={scroller}
-          className="relative overflow-x-auto pb-1 [scrollbar-width:thin]"
-        >
-          <div className="min-w-[640px]">
-            <div
-              aria-hidden="true"
-              className="mb-1.5 grid grid-cols-[repeat(53,minmax(0,1fr))] text-[10px] uppercase text-soft"
-            >
-              {months.map((m, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: one label slot per week column
-                <span key={i} className="overflow-visible whitespace-nowrap">
-                  {m}
-                </span>
-              ))}
-            </div>
-            <div
-              aria-hidden="true"
-              onPointerMove={onMove}
-              onPointerLeave={() => setHover(null)}
-              className="grid grid-flow-col grid-cols-[repeat(53,minmax(0,1fr))] grid-rows-7 gap-[3px]"
-            >
-              {weeks.flatMap((w, wi) =>
-                Array.from({ length: 7 }, (_, di) => {
-                  const d = w[di] ?? null;
-                  const level = d?.level ?? 0;
-                  const on = seen && (status !== "loading" || level === 0);
-                  return (
-                    <span
-                      key={d?.date ?? `pad-${String(wi)}-${String(di)}`}
-                      data-date={d?.date}
-                      className={cx(
-                        "relative grid aspect-square place-items-center",
-                        d && data && "cursor-pointer",
-                        hover?.day.date === d?.date &&
-                          d &&
-                          "outline outline-1 outline-cream/70",
-                      )}
-                    >
-                      {d ? (
-                        <span
-                          className="pointer-events-none block bg-cream transition-[transform,opacity] duration-500 ease-out-expo motion-reduce:transition-none"
-                          style={{
-                            width: `${(SIZE[level] ?? 0.2) * 100}%`,
-                            height: `${(SIZE[level] ?? 0.2) * 100}%`,
-                            opacity: on ? ALPHA[level] : 0,
-                            transform: on ? "scale(1)" : "scale(0)",
-                            transitionDelay: `${wi * 12 + di * 8}ms`,
-                          }}
-                        />
-                      ) : null}
-                    </span>
-                  );
-                }),
-              )}
-            </div>
           </div>
-        </div>
-        {hover ? (
           <div
-            className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full border border-cream/30 bg-panel px-2.5 py-1.5 text-[10px] uppercase whitespace-nowrap text-cream"
-            style={{ left: hover.x, top: hover.y - 6 }}
+            aria-hidden="true"
+            onPointerMove={onMove}
+            onPointerLeave={() => setHover(null)}
+            className="grid grid-flow-col grid-cols-[repeat(53,minmax(0,1fr))] grid-rows-7 gap-[3px]"
           >
-            {hover.day.count === 0
-              ? "No contributions"
-              : `${hover.day.count} contribution${hover.day.count === 1 ? "" : "s"}`}{" "}
-            · {fmt(hover.day.date)}
+            {weeks.flatMap((w, wi) =>
+              Array.from({ length: 7 }, (_, di) => {
+                const d = w[di] ?? null;
+                const level = d?.level ?? 0;
+                const on = seen && (status !== "loading" || level === 0);
+                return (
+                  <span
+                    key={d?.date ?? `pad-${String(wi)}-${String(di)}`}
+                    data-date={d?.date}
+                    className={cx(
+                      "relative grid aspect-square place-items-center",
+                      d && data && "cursor-pointer",
+                      hover?.day.date === d?.date &&
+                        d &&
+                        "outline outline-1 outline-cream/70",
+                    )}
+                  >
+                    {d ? (
+                      <span
+                        className="pointer-events-none block bg-cream transition-[transform,opacity] duration-500 ease-out-expo motion-reduce:transition-none"
+                        style={{
+                          width: `${(SIZE[level] ?? 0.2) * 100}%`,
+                          height: `${(SIZE[level] ?? 0.2) * 100}%`,
+                          opacity: on ? ALPHA[level] : 0,
+                          transform: on ? "scale(1)" : "scale(0)",
+                          transitionDelay: `${wi * 12 + di * 8}ms`,
+                        }}
+                      />
+                    ) : null}
+                  </span>
+                );
+              }),
+            )}
           </div>
-        ) : null}
+        </div>
       </div>
+      {hover ? (
+        <div
+          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full border border-cream/30 bg-panel px-2.5 py-1.5 text-[10px] uppercase whitespace-nowrap text-cream"
+          style={{ left: hover.x, top: hover.y - 6 }}
+        >
+          {hover.day.count === 0
+            ? "No contributions"
+            : `${hover.day.count} contribution${hover.day.count === 1 ? "" : "s"}`}{" "}
+          · {fmt(hover.day.date)}
+        </div>
+      ) : null}
     </section>
   );
 };

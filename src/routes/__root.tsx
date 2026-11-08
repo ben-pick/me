@@ -8,15 +8,14 @@ import type { ReactNode } from "react";
 import { BOOT_KEY, Boot } from "../components/Boot.tsx";
 import { CommandPalette } from "../components/CommandPalette.tsx";
 import { CompanyPreview } from "../components/CompanyPreview.tsx";
-import { Cursor } from "../components/Cursor.tsx";
 import { PopoverHost } from "../components/Popover.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
+import { site } from "../content/index.ts";
 import appCss from "../styles.css?url";
 
-const TITLE = "Benjamin Pick — Software Engineer, Sydney";
-const DESCRIPTION =
-  "Software engineer with a holistic knowledge of engineering, AI and design. Senior SWE at Thanks, ex-Staff SWE at CommBank, building Nooks.";
+const TITLE = site.seo.title;
+const DESCRIPTION = site.seo.description;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -74,7 +73,6 @@ function RootComponent() {
     <RootDocument>
       <Outlet />
       <Boot />
-      <Cursor />
       <CompanyPreview />
       <PopoverHost />
       <CommandPalette />

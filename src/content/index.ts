@@ -7,8 +7,10 @@ export type {
   Log,
   NowPlaying,
   Project,
+  Site,
 } from "./types.ts";
 export { content };
+export const site = content.site;
 
 export const companyBySlug = (slug: string) =>
   content.companies.find((c) => c.slug === slug);
