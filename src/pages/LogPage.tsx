@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { DiagramPanel } from "../components/DiagramPanel.tsx";
 import { formatDate } from "../components/Logs.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { Nav } from "../components/Nav.tsx";
@@ -44,17 +45,18 @@ export function LogPage({ log: post }: { log: Log }) {
             </button>
           ) : null}
         </aside>
-        <article className="max-w-[68ch] text-[14px] leading-[1.7]">
+        <article className="min-w-0 text-[14px] leading-[1.7]">
           <h1
             style={{ viewTransitionName: `post-${post.slug}` }}
-            className="mt-0 mb-10 font-display text-[clamp(44px,6vw,72px)] uppercase leading-[0.9] tracking-[-0.02em]"
+            className="mt-0 mb-10 max-w-[68ch] font-display text-[clamp(44px,6vw,72px)] uppercase leading-[0.9] tracking-[-0.02em]"
           >
             {post.title}
           </h1>
-          <div className="animate-rise [animation-delay:120ms]">
+          <DiagramPanel key={post.slug} id={post.diagram} />
+          <div className="max-w-[68ch] animate-rise [animation-delay:120ms]">
             <Markdown tree={post.body} />
           </div>
-          <nav className="mt-16 grid grid-cols-2 gap-3.5 border-ink border-t pt-6 text-[12px] uppercase">
+          <nav className="mt-16 grid max-w-[68ch] grid-cols-2 gap-3.5 border-ink border-t pt-6 text-[12px] uppercase">
             {newer ? (
               <Link
                 to="/logs/$slug"

@@ -1,7 +1,6 @@
-import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
+import { type CSSProperties, type ReactNode, useRef } from "react";
 import { cx } from "../lib/cx.ts";
 import { useInView } from "../lib/hooks.ts";
-import { scramble } from "../lib/scramble.ts";
 
 /** Four 12px L-shaped corners. Grows to 16px when an ancestor `group` is hovered. */
 export const Brackets = ({ className }: { className?: string }) => {
@@ -50,7 +49,7 @@ export const PAPER: CSSProperties = {
 
 /**
  * Heading + caption, with a hairline that runs to the right edge. When it
- * scrolls into view the heading scrambles into place and the rule draws across.
+ * scrolls into view the rule draws across.
  */
 export const SectionHeader = ({
   title,
@@ -62,19 +61,14 @@ export const SectionHeader = ({
   id?: string;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const text = useRef<HTMLSpanElement>(null);
   const seen = useInView(ref);
-  useEffect(() => {
-    if (seen && text.current)
-      return scramble(text.current, title.toUpperCase(), 520);
-  }, [seen, title]);
   return (
     <div ref={ref} className="mb-[18px] flex items-baseline gap-4">
       <h2
         id={id}
         className="m-0 font-display text-[28px] uppercase leading-none tracking-[-0.02em]"
       >
-        <span ref={text}>{title}</span>
+        {title}
       </h2>
       <span
         aria-hidden="true"

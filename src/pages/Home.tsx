@@ -2,6 +2,7 @@ import { BrainSection } from "../components/BrainSection.tsx";
 import { CompanyIndex } from "../components/CompanyIndex.tsx";
 import { Contact } from "../components/Contact.tsx";
 import { ContributionGraph } from "../components/ContributionGraph.tsx";
+import { HeroGlyph } from "../components/HeroGlyph.tsx";
 import { Logs } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { Projects } from "../components/Projects.tsx";
@@ -37,10 +38,16 @@ export function Home() {
       <main id="main" className="flex flex-col gap-16">
         <header className="flex flex-col gap-6">
           <div className="flex flex-col gap-5">
-            <h1 className="m-0 font-display text-[clamp(64px,12vw,176px)] uppercase leading-[0.86] tracking-[-0.02em]">
-              <Letters word={site.name.first} offset={0} />
-              <Letters word={site.name.last} offset={site.name.first.length} />
-            </h1>
+            <div className="flex items-end justify-between gap-4 font-display text-[clamp(64px,12vw,176px)] leading-[0.86]">
+              <h1 className="m-0 text-[length:inherit] font-[inherit] uppercase leading-[inherit] tracking-[-0.02em]">
+                <Letters word={site.name.first} offset={0} />
+                <Letters
+                  word={site.name.last}
+                  offset={site.name.first.length}
+                />
+              </h1>
+              <HeroGlyph className="hidden h-[1.72em] shrink-0 sm:block" />
+            </div>
             <div className="flex flex-wrap gap-1.5 text-[11px] uppercase">
               {site.tags.map((t, i) => (
                 <span

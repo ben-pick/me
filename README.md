@@ -5,7 +5,7 @@ company, project and interest, a GitHub contribution graph and a WebGL point-clo
 
 ## Stack
 
-Same as Nooks:
+Same as [REDACTED]:
 
 - **TanStack Start** (React 19, file routes, server routes) built with **Vite**
 - **Cloudflare Workers** via `@cloudflare/vite-plugin`, deployed with `wrangler`
@@ -51,7 +51,7 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 | `⌘K` / `Ctrl+K`, or start typing | Command palette (fuzzy search) |
 | `⌥1`–`⌥5` | Latest log, copy email, experience, GitHub, book a coffee |
 | `⌘C` over the contact block | Copy email |
-| `#company/kodo`, `#project/nooks`, `#interest/djing` | Deep-link a popover |
+| `#company/kodo`, `#project/redacted`, `#interest/djing` | Deep-link a popover |
 | Brain: drag, click, `←` `→` `↵` | Rotate with inertia, select, open |
 
 ## Motion
@@ -62,20 +62,27 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 - **Company previews**: each row has an animated preview that trails the cursor. Scenes
   are shaded vector drawings (`src/brain/company-glyphs.ts`) rendered off-screen and
   converted to the brain's square-dot halftone, with dot size following brightness.
-- **Scroll reveals**: section headings scramble into place and their rules draw across.
+- **Scroll reveals**: section rules draw across as they scroll in.
 
 
 ## Brain
 
 `src/brain/points.ts` builds the procedural point cloud (from the approved
 prototype) and draws labels; `src/brain/glyphs.ts` holds each region's animated
-halftone scene (decks, climber, FPS on a PC, dog, code editor, oversized tee and baggy pants on a rail); `src/brain/scene.ts` renders the
+halftone scene (decks, climber, FPS on a PC, dog, code editor, oversized tee and baggy pants on a rail, a Pokémon card turning over); `src/brain/scene.ts` renders the
 points into an offscreen target, then a film-grain pass. The scene loads when the
 panel nears the viewport and pauses off-screen. With reduced motion or no WebGL,
 a still 2D frame stays in place and still works by click and keyboard.
 
 To use a real anatomical model, replace `buildBrain` with points sampled from
 the mesh and keep the same `positions` / `regions` / `anchors` shape.
+
+## Log diagrams
+
+Every log names a 3D diagram in its `diagram` frontmatter field. `src/diagrams/data.ts` holds each diagram's parts,
+connections and playable flows; `src/diagrams/scene.ts` renders them as dots with three.js and loads when the panel nears the viewport.
+The flows, parts and readout are DOM controls, so they work by keyboard and without WebGL. To add one, add its id to
+`src/diagrams/ids.ts` and its data to `DIAGRAMS`.
 
 ## GitHub contributions
 

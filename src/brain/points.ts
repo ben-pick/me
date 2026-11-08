@@ -14,11 +14,12 @@ export const REGIONS = [
   "dogs",
   "tech",
   "streetwear",
+  "pokemon",
 ] as const;
 export type Region = (typeof REGIONS)[number];
 
 /** Regions with one lobe per hemisphere get a label on each side. */
-const MIRRORED: ReadonlySet<string> = new Set(["djing", "tech"]);
+const MIRRORED: ReadonlySet<string> = new Set(["djing", "tech", "pokemon"]);
 
 export interface Vec3 {
   x: number;
@@ -64,6 +65,8 @@ export const buildBrain = (scale = 1): Brain => {
       else if (dz > 0.02 && dy > 0.3) reg = "streetwear";
       else if (dy > 0.3 && ax > 0.3 && dz < 0.2) reg = "tech";
       else if (dy < 0.05 && ax > 0.5) reg = "djing";
+      // Angular gyrus: the side band between the temporal and parietal lobes.
+      else if (ax > 0.5 && dy <= 0.3) reg = "pokemon";
       pts.push({
         x: dx * 0.82 * rr + (dx < 0 ? -0.05 : 0.05),
         y: yy * rr + 0.12,
@@ -172,6 +175,7 @@ export const NAMES: Record<Region, string> = {
   dogs: "04 Dogs",
   tech: "05 Tech",
   streetwear: "06 Streetwear",
+  pokemon: "07 Pokémon",
 };
 
 export interface ScreenAnchor {

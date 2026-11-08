@@ -168,7 +168,9 @@ const Meta = ({ k, v }: { k: string; v: ReactNode }) => (
 
 const Monogram = ({ name }: { name: string }) => {
   const letters = name
+    .replace(/\(.*?\)/g, "")
     .replace(/[^A-Za-z ]/g, "")
+    .trim()
     .split(" ")
     .map((w) => w[0])
     .join("")

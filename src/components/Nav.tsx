@@ -1,29 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useRef } from "react";
 import { site } from "../content/index.ts";
-import { scramble } from "../lib/scramble.ts";
 import { actions } from "../lib/store.ts";
 import { Kbd } from "./ui.tsx";
-
-/** Letters shuffle then settle on hover — a small reward for pointing at things. */
-export const Scramble = ({ text }: { text: string }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const run = () => {
-    if (ref.current) scramble(ref.current, text);
-  };
-  return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: decorative hover effect
-    <span onPointerEnter={run} onFocus={run} className="relative inline-block">
-      <span aria-hidden="true" className="invisible">
-        {text}
-      </span>
-      <span ref={ref} aria-hidden="true" className="absolute inset-0">
-        {text}
-      </span>
-      <span className="sr-only">{text}</span>
-    </span>
-  );
-};
 
 const NAV = [
   { href: "experience", label: "Experience" },
@@ -47,7 +25,7 @@ export const Nav = () => (
           hash={n.href}
           className="relative hidden no-underline after:absolute after:-bottom-1 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out-expo hover:after:origin-left hover:after:scale-x-100 sm:inline"
         >
-          <Scramble text={n.label} />
+          {n.label}
         </Link>
       ))}
       <button

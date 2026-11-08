@@ -6,10 +6,14 @@
   "role": "Software Engineer",
   "location": "Sydney",
   "coordinates": "33.87°S 151.21°E",
-  "tags": ["Senior SWE @ Thanks", "ex-Staff SWE @ CommBank", "UNSW Comp Sci"],
+  "tags": [
+    "Founding Engineer @ Kodo",
+    "ex-Staff SWE @ CommBank",
+    "UNSW Comp Sci"
+  ],
   "seo": {
     "title": "Benjamin Pick — Software Engineer, Sydney",
-    "description": "Software engineer in Sydney. Senior SWE at Thanks, ex-Staff SWE at CommBank, building Nooks."
+    "description": "Software engineer in Sydney. Founding Engineer at Kodo, ex-Staff SWE at CommBank, building [REDACTED]."
   },
   "contact": {
     "headline": "Let's build something.",

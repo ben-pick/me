@@ -891,6 +891,115 @@ const streetwear: SceneFn = (c, t) => {
   c.restore();
 };
 
+/* --------------------------------------------------------------- Pokémon */
+
+const CARD_W = 60;
+const CARD_H = 84;
+
+const cardBack = (c: CanvasRenderingContext2D, level: number) => {
+  c.fillStyle = shade(c, -CARD_H / 2, CARD_H / 2, 150 * level, 80 * level);
+  rr(c, -CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H, 5);
+  c.fill();
+  c.strokeStyle = gray(235 * level);
+  c.lineWidth = 2.5;
+  rr(c, -CARD_W / 2 + 4, -CARD_H / 2 + 4, CARD_W - 8, CARD_H - 8, 3);
+  c.stroke();
+  // The ball: bright top, dark bottom, a band and a centre button.
+  const r = 17;
+  c.fillStyle = gray(245 * level);
+  c.beginPath();
+  c.arc(0, 0, r, Math.PI, TAU);
+  c.fill();
+  c.fillStyle = gray(45 * level);
+  c.beginPath();
+  c.arc(0, 0, r, 0, Math.PI);
+  c.fill();
+  c.fillStyle = gray(10);
+  c.fillRect(-r, -2, r * 2, 4);
+  c.beginPath();
+  c.arc(0, 0, 7, 0, TAU);
+  c.fill();
+  c.fillStyle = gray(245 * level);
+  c.beginPath();
+  c.arc(0, 0, 4, 0, TAU);
+  c.fill();
+};
+
+const cardFront = (c: CanvasRenderingContext2D, t: number) => {
+  c.save();
+  rr(c, -CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H, 5);
+  c.clip();
+  c.fillStyle = shade(c, -CARD_H / 2, CARD_H / 2, 250, 190);
+  c.fillRect(-CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H);
+  // Name bar and energy symbol.
+  c.fillStyle = gray(40);
+  c.fillRect(-24, -37, 28, 4);
+  c.beginPath();
+  c.arc(21, -35, 4.5, 0, TAU);
+  c.fill();
+  // Art window with a soft orb.
+  c.fillStyle = shade(c, -29, 7, 30, 95);
+  c.fillRect(-25, -29, 50, 36);
+  c.fillStyle = radial(c, 0, -11, 13, 255, 120);
+  c.beginPath();
+  c.arc(0, -11, 13, 0, TAU);
+  c.fill();
+  // Attack lines.
+  c.fillStyle = gray(45);
+  for (const [y, w] of [
+    [13, 42],
+    [20, 34],
+    [29, 42],
+    [36, 24],
+  ] as const) {
+    c.fillRect(-25, y, w, 2.6);
+  }
+  // Holo shine sweeping across the card.
+  const sweep = (((t * 0.55) % 1) - 0.5) * 150;
+  c.fillStyle = gray(255, 0.75);
+  c.beginPath();
+  c.moveTo(sweep - 8, -46);
+  c.lineTo(sweep + 8, -46);
+  c.lineTo(sweep - 22, 46);
+  c.lineTo(sweep - 38, 46);
+  c.closePath();
+  c.fill();
+  c.restore();
+  c.strokeStyle = gray(120);
+  c.lineWidth = 1.6;
+  rr(c, -CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H, 5);
+  c.stroke();
+};
+
+const pokemon: SceneFn = (c, t) => {
+  glow(c, 0, 46, 72, 40);
+
+  // A fan of sleeved cards behind the one being turned over.
+  for (const [x, y, angle, level] of [
+    [-44, 6, -0.3, 0.55],
+    [44, 6, 0.3, 0.55],
+    [-26, 2, -0.16, 0.8],
+    [26, 2, 0.16, 0.8],
+  ] as const) {
+    c.save();
+    c.translate(x, y);
+    c.rotate(angle);
+    c.scale(0.86, 0.86);
+    cardBack(c, level);
+    c.restore();
+  }
+
+  // Lingers on each face, then turns over quickly.
+  const turn = t * 0.8 + Math.sin(t * 1.6) * 0.42;
+  const facing = Math.cos(turn);
+  c.save();
+  c.translate(0, -2);
+  c.scale(Math.max(0.05, Math.abs(facing)), 1);
+  if (facing > 0) cardFront(c, t);
+  else cardBack(c, 1);
+  c.restore();
+};
+
 export const GLYPHS: Record<Region, SceneFn> = {
   bouldering,
   djing,
@@ -898,6 +1007,7 @@ export const GLYPHS: Record<Region, SceneFn> = {
   dogs,
   tech,
   streetwear,
+  pokemon,
 };
 
 /** Callout size in CSS px. */

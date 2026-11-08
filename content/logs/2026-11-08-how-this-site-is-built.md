@@ -3,9 +3,10 @@ slug: how-this-site-is-built
 title: How this site is built
 date: 2026-11-08
 summary: TanStack Start on Cloudflare Workers, content as Markdown, and a point-cloud brain.
+diagram: site
 ---
 
-This site runs on the same stack as Nooks: **TanStack Start** with React 19, deployed to **Cloudflare Workers** through the Cloudflare Vite plugin, styled with **Tailwind v4**, linted with **Biome** and tested with **Vitest**.
+This site runs on the same stack as [REDACTED]: **TanStack Start** with React 19, deployed to **Cloudflare Workers** through the Cloudflare Vite plugin, styled with **Tailwind v4**, linted with **Biome** and tested with **Vitest**.
 
 ## Content as files
 
@@ -13,7 +14,7 @@ Companies, projects, interests and logs are Markdown files with frontmatter. A s
 
 ## Interaction
 
-- Every row, card and brain region opens a popover with its own deep link, like `#company/thanks`.
+- Every row, card and brain region opens a popover with its own deep link, like `#company/kodo`.
 - `⌘K` opens a fuzzy command palette; typing anywhere does too.
 - The terminal takes `help`, `ls`, `projects`, `neofetch` and a few others.
 

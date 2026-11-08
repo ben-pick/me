@@ -8,7 +8,7 @@ describe("fuzzyMatch", () => {
   });
 
   it("returns highlight indices in order", () => {
-    expect(fuzzyMatch("nks", "Nooks")?.indices).toEqual([0, 3, 4]);
+    expect(fuzzyMatch("nks", "Nicks")?.indices).toEqual([0, 3, 4]);
   });
 
   it("ranks word starts above scattered hits", () => {

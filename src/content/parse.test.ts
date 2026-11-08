@@ -24,7 +24,7 @@ describe("loadContent", () => {
       "data61",
       "ibm",
     ]);
-    expect(content.projects.map((p) => p.slug)).toEqual(["nooks"]);
+    expect(content.projects.map((p) => p.slug)).toEqual(["redacted"]);
     expect(content.interests.map((i) => i.slug)).toEqual([
       "bouldering",
       "djing",
@@ -32,6 +32,7 @@ describe("loadContent", () => {
       "dogs",
       "tech",
       "streetwear",
+      "pokemon",
     ]);
   });
 
@@ -50,7 +51,7 @@ describe("loadContent", () => {
     const slugs = new Set(content.projects.map((p) => p.slug));
     for (const l of content.logs)
       if (l.project) expect(slugs.has(l.project)).toBe(true);
-    expect(content.logs.some((l) => l.project === "nooks")).toBe(true);
+    expect(content.logs.some((l) => l.project === "redacted")).toBe(true);
   });
 
   it("never calls anything a side project", () => {

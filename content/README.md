@@ -29,8 +29,8 @@ Each is a `---` block of fields, then optional body text.
 | --- | --- | --- |
 | `companies/` | Role in the Companies list. Fields: `slug`, `name`, `role`, `start`, `end`, `highlight`, `url`, `stack`, optional `detail`. | The bullet points in its popover |
 | `projects/` | Project card. Fields: `slug`, `code`, `name`, `status`, `pitch`, `tags`, `links`, optional `featured`. | The description in its popover |
-| `interests/` | Brain region. Fields: `slug`, `num`, `name`, `region`, `function`, `blurb`, `facts`. The six slugs must stay `bouldering`, `djing`, `gaming`, `dogs`, `tech`, `streetwear` (each is a region of the 3D brain). | — |
-| `logs/` | Log entry at `/logs/<slug>`. Fields: `slug`, `title`, `date` (YYYY-MM-DD), `summary`, optional `project` (a project slug, which makes it a build log for that project) and `draft: true` to hide it. | The full post |
+| `interests/` | Brain region. Fields: `slug`, `num`, `name`, `region`, `function`, `blurb`, `facts`. The seven slugs must stay `bouldering`, `djing`, `gaming`, `dogs`, `tech`, `streetwear`, `pokemon` (each is a region of the 3D brain). | — |
+| `logs/` | Log entry at `/logs/<slug>`. Fields: `slug`, `title`, `date` (YYYY-MM-DD), `summary`, `diagram` (an id from `src/diagrams/ids.ts`, required on every log), optional `project` (a project slug, which makes it a build log for that project) and `draft: true` to hide it. | The full post |
 
 Files are listed in filename order, so the `01-`, `02-` prefixes set the order of
 companies, projects and interests. Logs sort by `date`, newest first.
@@ -39,5 +39,5 @@ companies, projects and interests. Logs sort by `date`, newest first.
 
 - **A role**: copy a file in `companies/`, rename it with the next number, edit.
 - **A project**: same in `projects/`. With only one project the card goes full width.
-- **A log**: add `logs/YYYY-MM-DD-some-slug.md`. Add `project: nooks` to file it
-  under the Nooks build log.
+- **A log**: add `logs/YYYY-MM-DD-some-slug.md`. Add `project: redacted` to file it
+  under the [REDACTED] build log.
