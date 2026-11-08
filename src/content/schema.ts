@@ -1,0 +1,49 @@
+import { Schema } from "effect";
+
+const Strings = Schema.Array(Schema.String);
+const Link = Schema.Struct({ label: Schema.String, href: Schema.String });
+
+export const CompanyFrontmatter = Schema.Struct({
+  slug: Schema.String,
+  name: Schema.String,
+  detail: Schema.optional(Schema.String),
+  role: Schema.String,
+  start: Schema.String,
+  end: Schema.String,
+  highlight: Schema.String,
+  url: Schema.optional(Schema.String),
+  stack: Strings,
+});
+
+export const ProjectFrontmatter = Schema.Struct({
+  slug: Schema.String,
+  code: Schema.String,
+  name: Schema.String,
+  status: Schema.String,
+  pitch: Schema.String,
+  tags: Strings,
+  featured: Schema.optional(Schema.Boolean),
+  links: Schema.Array(Link),
+  log: Schema.Array(
+    Schema.Struct({ when: Schema.String, what: Schema.String }),
+  ),
+});
+
+export const InterestFrontmatter = Schema.Struct({
+  slug: Schema.String,
+  num: Schema.String,
+  name: Schema.String,
+  region: Schema.String,
+  function: Schema.String,
+  blurb: Schema.String,
+  facts: Schema.Array(Schema.Struct({ k: Schema.String, v: Schema.String })),
+  media: Schema.optional(Schema.String),
+});
+
+export const PostFrontmatter = Schema.Struct({
+  slug: Schema.String,
+  title: Schema.String,
+  date: Schema.String,
+  summary: Schema.String,
+  draft: Schema.optional(Schema.Boolean),
+});

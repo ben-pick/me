@@ -1,0 +1,51 @@
+{
+  "name": "ben-pick-portfolio",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "pnpm build && vite preview",
+    "deploy": "pnpm build && wrangler deploy",
+    "types": "wrangler types",
+    "typecheck": "tsr generate && tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "1.170.46",
+    "@tanstack/react-start": "1.169.4",
+    "effect": "4.1.2",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "three": "0.181.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.4",
+    "@cloudflare/vite-plugin": "1.67.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@tanstack/router-cli": "1.167.46",
+    "@types/mdast": "4.0.4",
+    "@types/node": "24.19.2",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.4",
+    "@types/three": "0.181.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "mdast-util-frontmatter": "2.0.1",
+    "mdast-util-from-markdown": "2.1.0",
+    "micromark-extension-frontmatter": "2.0.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "wrangler": "4.156.1",
+    "yaml": "2.9.1"
+  }
+}
