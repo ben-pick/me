@@ -735,12 +735,150 @@ const tech: SceneFn = (c, t) => {
   c.fillRect(-62, -42, 124, 68);
 };
 
+/* ----------------------------------------------------------- Streetwear */
+
+/** A shoebox lid lifts and a fresh sneaker rises out, turning in the light. */
+const streetwear: SceneFn = (c, t) => {
+  const cycle = t % 5;
+  const open = ease(clamp01(cycle / 0.8));
+  const rise = ease(clamp01((cycle - 0.5) / 1));
+  const settle = cycle > 4.3 ? ease(clamp01((cycle - 4.3) / 0.7)) : 0;
+  const lift = rise * (1 - settle);
+  const bob = Math.sin(t * 2.2) * 2 * lift;
+  const sway = Math.sin(t * 1.3) * 0.08 * lift;
+
+  // Box base
+  glow(c, 0, 46, 60, 50);
+  c.fillStyle = shade(c, 22, 50, 170, 70);
+  c.beginPath();
+  c.moveTo(-48, 24);
+  c.lineTo(48, 24);
+  c.lineTo(52, 50);
+  c.lineTo(-52, 50);
+  c.closePath();
+  c.fill();
+  c.fillStyle = gray(25);
+  c.fillRect(-46, 24, 92, 4);
+  // Tissue paper peeking out
+  c.fillStyle = gray(200, 0.8 * open);
+  c.beginPath();
+  c.moveTo(-40, 25);
+  c.quadraticCurveTo(-20, 16 - open * 6, 0, 24);
+  c.quadraticCurveTo(20, 15 - open * 6, 40, 25);
+  c.closePath();
+  c.fill();
+  // Lid swings up and back
+  c.save();
+  c.translate(48, 24);
+  c.rotate(-open * 1.9 * (1 - settle));
+  c.fillStyle = shade(c, -10, 0, 230, 140);
+  c.fillRect(-100, -7, 104, 7);
+  c.restore();
+
+  // Sneaker
+  c.save();
+  c.translate(0, 8 - lift * 34 + bob);
+  c.rotate(sway);
+  const s = 1.25 + lift * 0.12;
+  c.scale(s, s);
+  // Outsole with tread
+  c.fillStyle = shade(c, 6, 12, 230, 160);
+  c.beginPath();
+  c.moveTo(-40, 6);
+  c.lineTo(36, 6);
+  c.quadraticCurveTo(44, 7, 42, 12);
+  c.lineTo(-38, 12);
+  c.quadraticCurveTo(-44, 10, -40, 6);
+  c.fill();
+  c.fillStyle = gray(60);
+  for (let x = -36; x < 38; x += 5) c.fillRect(x, 11, 2.5, 1.5);
+  // Upper
+  c.fillStyle = shade(c, -20, 7, 250, 150);
+  c.beginPath();
+  c.moveTo(-38, 6);
+  c.lineTo(-38, -10);
+  c.quadraticCurveTo(-36, -18, -26, -18);
+  c.lineTo(-14, -16);
+  c.quadraticCurveTo(0, -6, 20, -4);
+  c.quadraticCurveTo(38, -2, 40, 6);
+  c.closePath();
+  c.fill();
+  // Toe cap + heel tab (darker panels)
+  c.fillStyle = gray(120);
+  c.beginPath();
+  c.moveTo(22, -3);
+  c.quadraticCurveTo(38, -1, 40, 6);
+  c.lineTo(24, 6);
+  c.closePath();
+  c.fill();
+  c.fillRect(-38, -12, 6, 16);
+  // Side stripe
+  c.strokeStyle = gray(40);
+  c.lineWidth = 3;
+  c.beginPath();
+  c.moveTo(-24, 2);
+  c.quadraticCurveTo(-4, -4, 18, -10);
+  c.stroke();
+  // Collar opening
+  c.fillStyle = gray(30);
+  c.beginPath();
+  c.ellipse(-24, -16, 9, 3, 0.1, 0, Math.PI * 2);
+  c.fill();
+  // Laces swing with the bob
+  c.strokeStyle = gray(255);
+  c.lineWidth = 1.6;
+  for (let k = 0; k < 4; k++) {
+    const x = -12 + k * 6;
+    const y = -13 + k * 2.4;
+    c.beginPath();
+    c.moveTo(x - 3, y - 1);
+    c.lineTo(x + 3, y + 1.5);
+    c.stroke();
+  }
+  c.beginPath();
+  c.moveTo(-14, -14);
+  c.quadraticCurveTo(
+    -18 + Math.sin(t * 3) * 3,
+    -4,
+    -16 + Math.sin(t * 3 + 1) * 4,
+    2,
+  );
+  c.stroke();
+  c.restore();
+
+  // Sparkles once it's out of the box
+  if (lift > 0.6) {
+    for (let k = 0; k < 4; k++) {
+      const ph = (t * 0.9 + k / 4) % 1;
+      const x = -46 + k * 30;
+      const y = -40 + Math.sin(k * 2.1) * 8;
+      const r = 4 * Math.sin(ph * Math.PI);
+      c.fillStyle = gray(255, Math.sin(ph * Math.PI));
+      c.beginPath();
+      c.moveTo(x, y - r * 1.6);
+      c.lineTo(x + r * 0.4, y);
+      c.lineTo(x, y + r * 1.6);
+      c.lineTo(x - r * 0.4, y);
+      c.closePath();
+      c.fill();
+      c.beginPath();
+      c.moveTo(x - r * 1.6, y);
+      c.lineTo(x, y + r * 0.4);
+      c.lineTo(x + r * 1.6, y);
+      c.lineTo(x, y - r * 0.4);
+      c.closePath();
+      c.fill();
+    }
+  }
+};
+
 export const GLYPHS: Record<Region, SceneFn> = {
   bouldering,
   djing,
   gaming,
   dogs,
   tech,
+  streetwear,
 };
 
 /** Callout size in CSS px. */

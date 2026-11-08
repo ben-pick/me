@@ -1,8 +1,8 @@
 import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { site } from "../content/index.ts";
-import { STATIC_BUILD } from "../lib/audio.ts";
 import { type Contributions, type Day, toWeeks } from "../lib/contributions.ts";
 import { cx } from "../lib/cx.ts";
+import { STATIC_BUILD } from "../lib/env.ts";
 import { useInView } from "../lib/hooks.ts";
 import { Grain } from "./ui.tsx";
 

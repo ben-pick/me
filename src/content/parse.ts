@@ -10,7 +10,6 @@ import {
   CompanyFrontmatter,
   InterestFrontmatter,
   LogFrontmatter,
-  NowPlayingFrontmatter,
   ProjectFrontmatter,
   SiteSchema,
 } from "./schema.ts";
@@ -62,18 +61,6 @@ const readCollection = <S extends Schema.Top>(
       }
     });
 
-const readSingle = <S extends Schema.Top>(
-  file: string,
-  schema: S,
-): S["Type"] => {
-  const { data } = parseDocument(readFileSync(file, "utf8"));
-  try {
-    return Schema.decodeUnknownSync(schema as never)(data) as S["Type"];
-  } catch (error) {
-    throw new Error(`Invalid content in ${file}:\n${String(error)}`);
-  }
-};
-
 /** JSON is valid YAML, so the YAML parser reads site.json without JSON.parse. */
 const readJson = <S extends Schema.Top>(file: string, schema: S): S["Type"] => {
   try {
@@ -93,5 +80,4 @@ export const loadContent = (root: string): Content => ({
   logs: readCollection(join(root, "logs"), LogFrontmatter)
     .filter((p) => p.draft !== true)
     .sort((a, b) => b.date.localeCompare(a.date)),
-  nowPlaying: readSingle(join(root, "now-playing.md"), NowPlayingFrontmatter),
 });

@@ -64,19 +64,12 @@ the file name. Values in `[brackets]` are placeholders to fill in.
   converted to the brain's square-dot halftone, with dot size following brightness.
 - **Scroll reveals**: section headings scramble into place and their rules draw across.
 
-## Now playing
-
-`content/now-playing.md` sets the song. A Spotify track link in `url:` plays through
-Spotify's embedded player (it opens under the hero on first play); an audio file in
-`public/` set as `audio:` takes precedence and drives the meter from the real signal.
-The static artifact build can't embed Spotify, so there the button opens the track. Playing it pulses the brain's DJing
-region.
 
 ## Brain
 
 `src/brain/points.ts` builds the procedural point cloud (from the approved
 prototype) and draws labels; `src/brain/glyphs.ts` holds each region's animated
-dot vignette (decks, climber, controller, dog, code editor); `src/brain/scene.ts` renders the
+halftone scene (decks, climber, FPS on a PC, dog, code editor, sneaker drop); `src/brain/scene.ts` renders the
 points into an offscreen target, then a film-grain pass. The scene loads when the
 panel nears the viewport and pauses off-screen. With reduced motion or no WebGL,
 a still 2D frame stays in place and still works by click and keyboard.

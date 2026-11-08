@@ -3,7 +3,6 @@ import type {
   CompanyFrontmatter,
   InterestFrontmatter,
   LogFrontmatter,
-  NowPlayingFrontmatter,
   ProjectFrontmatter,
   SiteSchema,
 } from "./schema.ts";
@@ -15,8 +14,6 @@ export type Project = typeof ProjectFrontmatter.Type & Body;
 export type Interest = typeof InterestFrontmatter.Type & Body;
 export type Log = typeof LogFrontmatter.Type & Body;
 
-export type NowPlaying = typeof NowPlayingFrontmatter.Type;
-
 export type Site = typeof SiteSchema.Type;
 
 export interface Content {
@@ -25,5 +22,4 @@ export interface Content {
   readonly projects: ReadonlyArray<Project>;
   readonly interests: ReadonlyArray<Interest>;
   readonly logs: ReadonlyArray<Log>;
-  readonly nowPlaying: NowPlaying;
 }

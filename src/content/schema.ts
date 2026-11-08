@@ -47,17 +47,6 @@ export const LogFrontmatter = Schema.Struct({
   draft: Schema.optional(Schema.Boolean),
 });
 
-export const NowPlayingFrontmatter = Schema.Struct({
-  title: Schema.String,
-  artist: Schema.String,
-  /** Audio file to play: a path under public/ or an absolute URL. */
-  audio: Schema.optional(Schema.String),
-  /** Where to listen to the full track. */
-  url: Schema.optional(Schema.String),
-  /** Why it's on repeat — one line. */
-  note: Schema.optional(Schema.String),
-});
-
 const Section = Schema.Struct({
   title: Schema.String,
   caption: Schema.optional(Schema.String),
@@ -70,7 +59,6 @@ export const SiteSchema = Schema.Struct({
   location: Schema.String,
   coordinates: Schema.String,
   tags: Strings,
-  intro: Schema.String,
   seo: Schema.Struct({ title: Schema.String, description: Schema.String }),
   contact: Schema.Struct({
     headline: Schema.String,
@@ -83,8 +71,8 @@ export const SiteSchema = Schema.Struct({
   sections: Schema.Struct({
     companies: Section,
     projects: Section,
+    brain: Section,
     activity: Section,
     logs: Section,
   }),
-  brain: Schema.Struct({ caption: Schema.String }),
 });

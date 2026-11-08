@@ -14,14 +14,12 @@ Values in `[square brackets]` are placeholders still to fill in.
 | `role`, `location` | Nav ("Software Engineer / Sydney"), boot screen |
 | `coordinates` | Boot screen |
 | `tags` | The outlined chips under your name |
-| `intro` | The paragraph under the brain |
 | `seo.title`, `seo.description` | Browser tab, search results, link previews |
 | `contact.headline` | "Let's build something." |
 | `contact.email`, `contact.github`, `contact.linkedin` | Contact band, ⌘K palette, ⌥2 / ⌥4 |
 | `contact.coffee.subject`, `.body` | The email drafted by "Book a coffee" (⌥5) |
 | `github.user` | The Activity graph |
 | `sections.*.title`, `.caption` | Section headings and the small text beside them |
-| `brain.caption` | Top-left of the brain panel |
 
 ## Markdown files
 
@@ -31,9 +29,8 @@ Each is a `---` block of fields, then optional body text.
 | --- | --- | --- |
 | `companies/` | Role in the Companies list. Fields: `slug`, `name`, `role`, `start`, `end`, `highlight`, `url`, `stack`, optional `detail`. | The bullet points in its popover |
 | `projects/` | Project card. Fields: `slug`, `code`, `name`, `status`, `pitch`, `tags`, `links`, optional `featured`. | The description in its popover |
-| `interests/` | Brain region. Fields: `slug`, `num`, `name`, `region`, `function`, `blurb`, `facts`. The five slugs must stay `bouldering`, `djing`, `gaming`, `dogs`, `tech`. | — |
+| `interests/` | Brain region. Fields: `slug`, `num`, `name`, `region`, `function`, `blurb`, `facts`. The six slugs must stay `bouldering`, `djing`, `gaming`, `dogs`, `tech`, `streetwear` (each is a region of the 3D brain). | — |
 | `logs/` | Log entry at `/logs/<slug>`. Fields: `slug`, `title`, `date` (YYYY-MM-DD), `summary`, optional `project` (a project slug, which makes it a build log for that project) and `draft: true` to hide it. | The full post |
-| `now-playing.md` | The song. `url` is a Spotify track link; `audio` (a file in `public/`) overrides it. `title` and `artist` show in the player. | — |
 
 Files are listed in filename order, so the `01-`, `02-` prefixes set the order of
 companies, projects and interests. Logs sort by `date`, newest first.

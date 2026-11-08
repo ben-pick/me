@@ -5,7 +5,6 @@ export type {
   Content,
   Interest,
   Log,
-  NowPlaying,
   Project,
   Site,
 } from "./types.ts";

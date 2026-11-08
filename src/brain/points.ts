@@ -13,6 +13,7 @@ export const REGIONS = [
   "gaming",
   "dogs",
   "tech",
+  "streetwear",
 ] as const;
 export type Region = (typeof REGIONS)[number];
 
@@ -59,6 +60,8 @@ export const buildBrain = (scale = 1): Brain => {
       let reg: Region | null = null;
       if (dz > 0.38) reg = "dogs";
       else if (dz < -0.5 && dy > -0.45) reg = "gaming";
+      // Somatosensory strip: a band across the top, just behind the frontal lobe.
+      else if (dz > 0.02 && dy > 0.3) reg = "streetwear";
       else if (dy > 0.3 && ax > 0.3 && dz < 0.2) reg = "tech";
       else if (dy < 0.05 && ax > 0.5) reg = "djing";
       pts.push({
@@ -168,6 +171,7 @@ export const NAMES: Record<Region, string> = {
   gaming: "03 Gaming",
   dogs: "04 Dogs",
   tech: "05 Tech",
+  streetwear: "06 Streetwear",
 };
 
 export interface ScreenAnchor {

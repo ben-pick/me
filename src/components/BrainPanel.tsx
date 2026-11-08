@@ -9,7 +9,6 @@ import {
 } from "../brain/points.ts";
 import type { BrainScene } from "../brain/scene.ts";
 import { interestBySlug, site } from "../content/index.ts";
-import { audioLevel } from "../lib/audio.ts";
 import { cx } from "../lib/cx.ts";
 import { useReducedMotion } from "../lib/hooks.ts";
 import { actions, getState, useStore } from "../lib/store.ts";
@@ -111,7 +110,6 @@ export const BrainPanel = () => {
             onHover: (r) => actions.hoverInterest(r),
             onPick: (r, x, y) => openInterest(r, x, y, host.current),
             onReady: () => setLive(true),
-            beat: audioLevel,
           });
         });
       },
@@ -187,10 +185,10 @@ export const BrainPanel = () => {
         // biome-ignore lint/a11y/noNoninteractiveTabindex: the brain is keyboard-operable (arrows + Enter)
         tabIndex={0}
         aria-roledescription="interactive brain"
-        aria-label={`${site.brain.caption}: a 3D brain mapping my interests. Selected: ${shown?.name ?? ""}, ${shown?.region ?? ""}. Use arrow keys to change region and Enter to open it. Drag to rotate.`}
+        aria-label={`${site.sections.brain.title}: a 3D brain mapping my interests. Selected: ${shown?.name ?? ""}, ${shown?.region ?? ""}. Use arrow keys to change region and Enter to open it. Drag to rotate.`}
         onKeyDown={onKeyDown}
         onPointerUp={onStillClick}
-        className="group relative h-[380px] touch-pan-y overflow-hidden bg-[radial-gradient(ellipse_at_50%_45%,#262626_0%,#121212_70%)] outline-none select-none focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink"
+        className="group relative h-[420px] touch-pan-y md:h-[520px] overflow-hidden bg-[radial-gradient(ellipse_at_50%_45%,#262626_0%,#121212_70%)] outline-none select-none focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink"
       >
         <canvas
           ref={still}
@@ -211,9 +209,6 @@ export const BrainPanel = () => {
           className="pointer-events-none absolute inset-0 block size-full"
         />
         <Grain className="opacity-35" />
-        <div className="pointer-events-none absolute top-3 left-3.5 text-[11px] uppercase text-soft">
-          {site.brain.caption} — {reduced ? "click a region" : "drag to swivel"}
-        </div>
         <div className="pointer-events-none absolute top-3 right-3.5 hidden gap-1 text-[10px] uppercase text-soft group-focus-visible:flex">
           ← → change · ↵ open
         </div>

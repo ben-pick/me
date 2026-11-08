@@ -31,9 +31,6 @@ interface State {
   readonly toast: { id: number; text: string } | null;
   /** Company slug whose preview follows the cursor. */
   readonly preview: string | null;
-  readonly playing: boolean;
-  /** The Spotify player under the hero has been opened. */
-  readonly playerOpen: boolean;
   /** The boot sequence has finished (or was skipped). */
   readonly booted: boolean;
 }
@@ -45,8 +42,6 @@ let state: State = {
   hoverInterest: null,
   toast: null,
   preview: null,
-  playing: false,
-  playerOpen: false,
   booted: false,
 };
 const listeners = new Set<() => void>();
@@ -118,12 +113,6 @@ export const actions = {
   },
   setBooted() {
     if (!state.booted) set({ booted: true });
-  },
-  setPlayerOpen(open: boolean) {
-    if (state.playerOpen !== open) set({ playerOpen: open });
-  },
-  setPlaying(playing: boolean) {
-    if (state.playing !== playing) set({ playing });
   },
   toast(text: string) {
     set({ toast: { id: Date.now(), text } });

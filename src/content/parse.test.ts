@@ -31,6 +31,7 @@ describe("loadContent", () => {
       "gaming",
       "dogs",
       "tech",
+      "streetwear",
     ]);
   });
 

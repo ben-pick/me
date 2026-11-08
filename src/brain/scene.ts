@@ -37,8 +37,6 @@ export interface BrainOptions {
   readonly selected: Region;
   readonly onHover: (region: Region | null) => void;
   readonly onPick: (region: Region, clientX: number, clientY: number) => void;
-  /** Music level 0–1, read every frame. */
-  readonly beat?: () => number;
   /** Called once the first frame is on screen. */
   readonly onReady: () => void;
 }
@@ -53,7 +51,6 @@ const pointsVertex = /* glsl */ `
   attribute float aSeed;
   attribute vec3 aScatter;
   uniform float uAssemble;
-  uniform float uBeat;
   uniform float uSel[${REGIONS.length}];
   uniform float uHov[${REGIONS.length}];
   uniform float uPR;
@@ -79,11 +76,8 @@ const pointsVertex = /* glsl */ `
     local = 1.0 - pow(1.0 - local, 3.0);
     vec3 home = mix(aScatter, position, local);
 
-    // Selected regions breathe outward a touch; the DJing region (index 1)
-    // also kicks with the music.
-    float dj = 1.0 - step(0.5, abs(aRegion - 1.0));
-    vec3 p = home * (1.0 + sel * 0.025 * (0.5 + 0.5 * sin(uTime * 2.4 + aSeed * 6.0)) + dj * uBeat * 0.06);
-    sel = max(sel, dj * uBeat);
+    // Selected regions breathe outward a touch.
+    vec3 p = home * (1.0 + sel * 0.025 * (0.5 + 0.5 * sin(uTime * 2.4 + aSeed * 6.0)));
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     float t = clamp((mv.z + ${CAMERA_Z.toFixed(1)} + 1.3) / 2.6, 0.0, 1.0);
 
@@ -186,7 +180,6 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
   }
   geometry.setAttribute("aScatter", new BufferAttribute(scatter, 3));
   const uAssemble = { value: 0 };
-  const uBeat = { value: 0 };
 
   const sel = REGIONS.map(() => 0);
   const hov = REGIONS.map(() => 0);
@@ -204,7 +197,6 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
       uPR,
       uScale,
       uAssemble,
-      uBeat,
       uTime: uTimePts,
     },
     transparent: true,
@@ -433,7 +425,6 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
       1,
       Math.max(0, (uAssemble.value - 0.55) * 2.5),
     ).toFixed(3);
-    uBeat.value = opts.beat?.() ?? 0;
 
     group.rotation.set(rp, ry, 0, "XYZ");
     const t = now / 1000;

@@ -7,10 +7,9 @@
   "location": "Sydney",
   "coordinates": "33.87°S 151.21°E",
   "tags": ["Senior SWE @ Thanks", "ex-Staff SWE @ CommBank", "UNSW Comp Sci"],
-  "intro": "Software engineer with a holistic knowledge of engineering, AI and design. I build rapid, innovative products in fast-paced teams — full-stack web apps and cloud architecture — and I'm building Nooks.",
   "seo": {
     "title": "Benjamin Pick — Software Engineer, Sydney",
-    "description": "Software engineer with a holistic knowledge of engineering, AI and design. Senior SWE at Thanks, ex-Staff SWE at CommBank, building Nooks."
+    "description": "Software engineer in Sydney. Senior SWE at Thanks, ex-Staff SWE at CommBank, building Nooks."
   },
   "contact": {
     "headline": "Let's build something.",
@@ -34,14 +33,15 @@
       "title": "Projects",
       "caption": "Things I'm building"
     },
+    "brain": {
+      "title": "Inside my head",
+      "caption": "Drag to swivel · click a region"
+    },
     "activity": {
       "title": "Activity"
     },
     "logs": {
       "title": "Logs"
     }
-  },
-  "brain": {
-    "caption": "Inside my head"
   }
 }
