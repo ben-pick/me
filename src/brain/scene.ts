@@ -27,8 +27,6 @@ import {
 export interface BrainScene {
   /** Select a region and swing the camera toward it. */
   focus(region: Region): void;
-  /** Glow a region because of what's on screen elsewhere (null clears). */
-  setAttention(region: Region | null): void;
   dispose(): void;
 }
 
@@ -255,8 +253,6 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
   let vpitch = 0;
   let selected: Region = opts.selected;
   let hovered: Region | null = null;
-  /** Region tied to what's on screen elsewhere on the page. */
-  let attention: Region | null = null;
   // Idle tilt toward the cursor anywhere on the page.
   let lookX = 0;
   let lookY = 0;
@@ -415,7 +411,7 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
     const e = 1 - Math.exp(-dt * 10);
     for (const r of REGIONS) {
       levels[r] += ((r === selected ? 1 : 0) - levels[r]) * e;
-      const glow = r === (hovered ?? attention) ? 1 : 0;
+      const glow = r === hovered ? 1 : 0;
       hoverLevels[r] += (glow - hoverLevels[r]) * e;
     }
     REGIONS.forEach((r, i) => {
@@ -502,9 +498,6 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
 
   return {
     focus,
-    setAttention(region: Region | null) {
-      attention = region;
-    },
     dispose() {
       stop();
       io.disconnect();

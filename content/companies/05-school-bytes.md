@@ -6,7 +6,6 @@ start: Feb 2021
 end: Feb 2022
 highlight: Admin platform for 1,700+ schools · $100M exit
 url: https://www.schoolbytes.education
-region: djing
 stack: [PHP, Laravel, jQuery, SQL]
 ---
 

@@ -28,8 +28,6 @@ interface State {
   readonly interest: string;
   readonly hoverInterest: string | null;
   readonly toast: { id: number; text: string } | null;
-  /** Brain region tied to whatever is in the middle of the viewport. */
-  readonly attention: string | null;
   /** Company slug whose preview follows the cursor. */
   readonly preview: string | null;
   readonly playing: boolean;
@@ -43,7 +41,6 @@ let state: State = {
   interest: "bouldering",
   hoverInterest: null,
   toast: null,
-  attention: null,
   preview: null,
   playing: false,
   booted: false,
@@ -111,9 +108,6 @@ export const actions = {
   },
   hoverInterest(slug: string | null) {
     if (state.hoverInterest !== slug) set({ hoverInterest: slug });
-  },
-  setAttention(region: string | null) {
-    if (state.attention !== region) set({ attention: region });
   },
   setPreview(slug: string | null) {
     if (state.preview !== slug) set({ preview: slug });

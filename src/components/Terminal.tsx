@@ -137,7 +137,6 @@ export const Terminal = () => {
     // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: clicking the panel just focuses the input, which is keyboard-reachable itself
     <div
       id="terminal"
-      data-region="tech"
       onClick={() => {
         if (!window.getSelection()?.toString())
           input.current?.focus({ preventScroll: true });

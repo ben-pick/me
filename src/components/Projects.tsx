@@ -32,7 +32,6 @@ const Card = ({ p, wide }: { p: Project; wide: boolean }) => {
       ref={ref}
       type="button"
       aria-haspopup="dialog"
-      data-region="tech"
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       onClick={(e) =>

@@ -2,12 +2,10 @@ import { BrainPanel } from "../components/BrainPanel.tsx";
 import { CompanyIndex } from "../components/CompanyIndex.tsx";
 import { Contact } from "../components/Contact.tsx";
 import { Logs } from "../components/Logs.tsx";
-import { MiniBrain } from "../components/MiniBrain.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { NowPlaying } from "../components/NowPlaying.tsx";
 import { Projects } from "../components/Projects.tsx";
 import { Terminal } from "../components/Terminal.tsx";
-import { useAttentionTracker } from "../lib/attention.ts";
 
 /**
  * The name drops in letter by letter once the boot panel has gone. The delay
@@ -39,7 +37,6 @@ const TAGS = [
 ];
 
 export function Home() {
-  useAttentionTracker();
   return (
     <div className="mx-auto flex max-w-[1216px] flex-col gap-16 px-4 pt-6 pb-16 sm:px-8">
       <Nav />
@@ -86,7 +83,6 @@ export function Home() {
         </section>
         <Contact />
       </main>
-      <MiniBrain />
     </div>
   );
 }

@@ -15,7 +15,7 @@ import { useReducedMotion } from "../lib/hooks.ts";
 import { actions, getState, useStore } from "../lib/store.ts";
 import { Brackets, Grain } from "./ui.tsx";
 
-export const asRegion = (s: string): Region =>
+const asRegion = (s: string): Region =>
   ((REGIONS as ReadonlyArray<string>).find((r) => r === s) as Region) ??
   "bouldering";
 
@@ -47,7 +47,6 @@ export const BrainPanel = () => {
   const selected = asRegion(useStore((s) => s.interest));
   const hovered = useStore((s) => s.hoverInterest);
   const booted = useStore((s) => s.booted);
-  const attention = useStore((s) => s.attention);
   const shown = interestBySlug(hovered ?? selected);
 
   // Still frame: drawn on mount and whenever the selection changes.
@@ -127,10 +126,6 @@ export const BrainPanel = () => {
       setLive(false);
     };
   }, [reduced, booted]);
-
-  useEffect(() => {
-    scene.current?.setAttention(attention ? asRegion(attention) : null);
-  }, [attention]);
 
   // Selections from elsewhere (palette, deep link) swing the camera too.
   useEffect(() => {

@@ -13,8 +13,6 @@ export const CompanyFrontmatter = Schema.Struct({
   highlight: Schema.String,
   url: Schema.optional(Schema.String),
   stack: Strings,
-  /** Brain region that lights up while this row is on screen. */
-  region: Schema.optional(Schema.String),
 });
 
 export const ProjectFrontmatter = Schema.Struct({

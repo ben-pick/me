@@ -11,10 +11,7 @@ export const formatDate = (iso: string) =>
   });
 
 export const Logs = () => (
-  <div
-    data-region="tech"
-    className="flex flex-col gap-2.5 border border-ink p-7"
-  >
+  <div className="flex flex-col gap-2.5 border border-ink p-7">
     <div className="flex justify-between text-[11px] uppercase text-muted">
       <Link to="/logs" className="no-underline hover:text-ink">
         Logs

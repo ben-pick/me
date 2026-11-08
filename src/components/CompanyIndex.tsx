@@ -70,11 +70,9 @@ export const CompanyIndex = () => {
               key={c.slug}
               type="button"
               aria-haspopup="dialog"
-              data-region={c.region}
               onPointerEnter={(e) => {
                 activate(i, e.currentTarget);
                 if (e.pointerType === "mouse") actions.setPreview(c.slug);
-                if (c.region) actions.setAttention(c.region);
               }}
               onFocus={(e) => activate(i, e.currentTarget)}
               onClick={(e) => {

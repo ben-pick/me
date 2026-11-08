@@ -7,7 +7,6 @@ start: Feb 2022
 end: Nov 2022
 highlight: Commbank iQ · insights on 200K+ brands
 url: https://quantium.com
-region: gaming
 stack: [Angular, Python Lambda, API Gateway, Aurora Postgres, CodeBuild, CodePipeline]
 ---
 

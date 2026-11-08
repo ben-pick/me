@@ -60,9 +60,6 @@ the file name. Values in `[brackets]` are placeholders to fill in.
   visits and with reduced motion (an inline script in the root decides before paint).
 - **Cursor**: on fine pointers, corner brackets glide to frame whatever you hover, with
   a label (`data-cursor="…"` overrides it).
-- **Brain attention**: elements with `data-region` light up that brain region when they
-  reach the middle of the screen. Company rows take it from `region:` in their content
-  file. Once the header scrolls away, a mini-brain docks bottom-right while you scroll.
 - **Company previews**: each row has an animated preview that trails the cursor. Scenes
   are shaded vector drawings (`src/brain/company-glyphs.ts`) rendered off-screen and
   converted to the brain's square-dot halftone, with dot size following brightness.
@@ -72,7 +69,7 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 
 `content/now-playing.md` sets the song. Put an audio file in `public/` (a clip you
 have the rights to) and set `audio:` to its path. Playing it pulses the brain's DJing
-region and spins the docked brain faster. `play` in the terminal does the same.
+region. `play` in the terminal does the same.
 
 ## Brain
 
