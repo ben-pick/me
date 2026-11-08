@@ -1,5 +1,7 @@
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
 import { cx } from "../lib/cx.ts";
+import { useInView } from "../lib/hooks.ts";
+import { scramble } from "../lib/scramble.ts";
 
 /** Four 12px L-shaped corners. Grows to 16px when an ancestor `group` is hovered. */
 export const Brackets = ({ className }: { className?: string }) => {
@@ -46,7 +48,10 @@ export const PAPER: CSSProperties = {
     "repeating-radial-gradient(circle at 40% 30%, rgb(0 0 0 / .035) 0 1px, transparent 1px 3px)",
 };
 
-/** Heading + caption, with a hairline that runs to the right edge. */
+/**
+ * Heading + caption, with a hairline that runs to the right edge. When it
+ * scrolls into view the heading scrambles into place and the rule draws across.
+ */
 export const SectionHeader = ({
   title,
   caption,
@@ -55,23 +60,42 @@ export const SectionHeader = ({
   title: string;
   caption?: ReactNode;
   id?: string;
-}) => (
-  <div className="mb-[18px] flex items-baseline gap-4">
-    <h2
-      id={id}
-      className="m-0 font-display text-[28px] uppercase leading-none tracking-[-0.02em]"
-    >
-      {title}
-    </h2>
-    <span
-      aria-hidden="true"
-      className="h-px flex-1 translate-y-[-6px] bg-ink/70"
-    />
-    {caption ? (
-      <span className="text-[11px] uppercase text-muted">{caption}</span>
-    ) : null}
-  </div>
-);
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const text = useRef<HTMLSpanElement>(null);
+  const seen = useInView(ref);
+  useEffect(() => {
+    if (seen && text.current)
+      return scramble(text.current, title.toUpperCase(), 520);
+  }, [seen, title]);
+  return (
+    <div ref={ref} className="mb-[18px] flex items-baseline gap-4">
+      <h2
+        id={id}
+        className="m-0 font-display text-[28px] uppercase leading-none tracking-[-0.02em]"
+      >
+        <span ref={text}>{title}</span>
+      </h2>
+      <span
+        aria-hidden="true"
+        className={cx(
+          "h-px flex-1 translate-y-[-6px] origin-left bg-ink/70 transition-transform delay-150 duration-[1100ms] ease-out-expo motion-reduce:scale-x-100",
+          seen ? "scale-x-100" : "scale-x-0",
+        )}
+      />
+      {caption ? (
+        <span
+          className={cx(
+            "text-[11px] uppercase text-muted transition-opacity delay-500 duration-500",
+            seen ? "opacity-100" : "opacity-0 motion-reduce:opacity-100",
+          )}
+        >
+          {caption}
+        </span>
+      ) : null}
+    </div>
+  );
+};
 
 export const Kbd = ({
   children,

@@ -205,25 +205,16 @@ const drawCallout = (
   const bw = GLYPH_W * dpr;
   const bh = GLYPH_H * dpr;
   const pad = 10 * dpr;
-  const gap = 20 * dpr;
-  let bx = item.right
-    ? item.ex + 24 * dpr + bw / 2
-    : item.ex - 24 * dpr - bw / 2;
-  bx = Math.min(Math.max(bx, bw / 2 + pad), w - bw / 2 - pad);
-  // Sit above or below the label, whichever side has room for the whole box.
-  const above = item.ey - gap - bh / 2;
-  const below = item.ey + gap + bh / 2;
-  const fitsAbove = above - bh / 2 >= pad + 18 * dpr;
-  const fitsBelow = below + bh / 2 <= h - pad - 18 * dpr;
-  let by =
-    fitsAbove && (!fitsBelow || item.ey < h / 2)
-      ? above
-      : fitsBelow
-        ? below
-        : above;
-  by = Math.min(Math.max(by, bh / 2 + pad), h - bh / 2 - pad);
+  // Sit in the panel's outer margin on the region's side, level with it, so
+  // the callout never covers the brain it describes.
+  const [qx, qy] = item.q;
+  const bx = qx < w / 2 ? pad + bw / 2 : w - pad - bw / 2;
+  const by = Math.min(
+    Math.max(qy, bh / 2 + pad + 18 * dpr),
+    h - bh / 2 - pad - 18 * dpr,
+  );
   const e = easeOut(Math.min(1, p * 1.3));
-  const [ax, ay] = item.q;
+  const [ax, ay] = [qx, qy];
   const fx = ax + (bx - ax) * e;
   const fy = ay + (by - ay) * e;
   const fw = (bw / 2) * e;

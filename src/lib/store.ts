@@ -28,6 +28,13 @@ interface State {
   readonly interest: string;
   readonly hoverInterest: string | null;
   readonly toast: { id: number; text: string } | null;
+  /** Brain region tied to whatever is in the middle of the viewport. */
+  readonly attention: string | null;
+  /** Company slug whose preview follows the cursor. */
+  readonly preview: string | null;
+  readonly playing: boolean;
+  /** The boot sequence has finished (or was skipped). */
+  readonly booted: boolean;
 }
 
 let state: State = {
@@ -36,6 +43,10 @@ let state: State = {
   interest: "bouldering",
   hoverInterest: null,
   toast: null,
+  attention: null,
+  preview: null,
+  playing: false,
+  booted: false,
 };
 const listeners = new Set<() => void>();
 
@@ -100,6 +111,18 @@ export const actions = {
   },
   hoverInterest(slug: string | null) {
     if (state.hoverInterest !== slug) set({ hoverInterest: slug });
+  },
+  setAttention(region: string | null) {
+    if (state.attention !== region) set({ attention: region });
+  },
+  setPreview(slug: string | null) {
+    if (state.preview !== slug) set({ preview: slug });
+  },
+  setBooted() {
+    if (!state.booted) set({ booted: true });
+  },
+  setPlaying(playing: boolean) {
+    if (state.playing !== playing) set({ playing });
   },
   toast(text: string) {
     set({ toast: { id: Date.now(), text } });

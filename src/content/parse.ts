@@ -10,6 +10,7 @@ import {
   CompanyFrontmatter,
   InterestFrontmatter,
   LogFrontmatter,
+  NowPlayingFrontmatter,
   ProjectFrontmatter,
 } from "./schema.ts";
 import type { Content } from "./types.ts";
@@ -60,6 +61,18 @@ const readCollection = <S extends Schema.Top>(
       }
     });
 
+const readSingle = <S extends Schema.Top>(
+  file: string,
+  schema: S,
+): S["Type"] => {
+  const { data } = parseDocument(readFileSync(file, "utf8"));
+  try {
+    return Schema.decodeUnknownSync(schema as never)(data) as S["Type"];
+  } catch (error) {
+    throw new Error(`Invalid content in ${file}:\n${String(error)}`);
+  }
+};
+
 export const loadContent = (root: string): Content => ({
   companies: readCollection(join(root, "companies"), CompanyFrontmatter),
   projects: readCollection(join(root, "projects"), ProjectFrontmatter),
@@ -67,4 +80,5 @@ export const loadContent = (root: string): Content => ({
   logs: readCollection(join(root, "logs"), LogFrontmatter)
     .filter((p) => p.draft !== true)
     .sort((a, b) => b.date.localeCompare(a.date)),
+  nowPlaying: readSingle(join(root, "now-playing.md"), NowPlayingFrontmatter),
 });

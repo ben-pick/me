@@ -1,33 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useRef } from "react";
+import { scramble } from "../lib/scramble.ts";
 import { actions } from "../lib/store.ts";
 import { Kbd } from "./ui.tsx";
-
-const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/—";
 
 /** Letters shuffle then settle on hover — a small reward for pointing at things. */
 export const Scramble = ({ text }: { text: string }) => {
   const ref = useRef<HTMLSpanElement>(null);
-  const raf = useRef(0);
   const run = () => {
-    const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-      return;
-    cancelAnimationFrame(raf.current);
-    const start = performance.now();
-    const tick = (now: number) => {
-      const p = (now - start) / 380;
-      el.textContent = [...text]
-        .map((ch, i) =>
-          ch === " " || i < p * text.length
-            ? ch
-            : (GLYPHS[Math.floor(Math.random() * GLYPHS.length)] ?? ch),
-        )
-        .join("");
-      if (p < 1) raf.current = requestAnimationFrame(tick);
-      else el.textContent = text;
-    };
-    raf.current = requestAnimationFrame(tick);
+    if (ref.current) scramble(ref.current, text);
   };
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: decorative hover effect

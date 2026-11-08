@@ -6,6 +6,7 @@ start: Mar 2025
 end: Jan 2026
 highlight: Rebuilt auth for NetBank, CommBiz, Bankwest & CommSec
 url: https://www.commbank.com.au
+region: tech
 stack: [Turborepo, Next.js, Node.js APIs, AWS ECS Fargate, ALB, Cloudflare, GitHub Actions]
 ---
 

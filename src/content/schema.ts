@@ -13,6 +13,8 @@ export const CompanyFrontmatter = Schema.Struct({
   highlight: Schema.String,
   url: Schema.optional(Schema.String),
   stack: Strings,
+  /** Brain region that lights up while this row is on screen. */
+  region: Schema.optional(Schema.String),
 });
 
 export const ProjectFrontmatter = Schema.Struct({
@@ -45,4 +47,15 @@ export const LogFrontmatter = Schema.Struct({
   /** Slug of the project this is a build log for, if any. */
   project: Schema.optional(Schema.String),
   draft: Schema.optional(Schema.Boolean),
+});
+
+export const NowPlayingFrontmatter = Schema.Struct({
+  title: Schema.String,
+  artist: Schema.String,
+  /** Audio file to play: a path under public/ or an absolute URL. */
+  audio: Schema.optional(Schema.String),
+  /** Where to listen to the full track. */
+  url: Schema.optional(Schema.String),
+  /** Why it's on repeat — one line. */
+  note: Schema.optional(Schema.String),
 });

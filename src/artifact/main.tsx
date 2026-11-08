@@ -14,7 +14,10 @@ import {
 } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BOOT_KEY, Boot } from "../components/Boot.tsx";
 import { CommandPalette } from "../components/CommandPalette.tsx";
+import { CompanyPreview } from "../components/CompanyPreview.tsx";
+import { Cursor } from "../components/Cursor.tsx";
 import { PopoverHost } from "../components/Popover.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
@@ -28,6 +31,9 @@ const rootRoute = createRootRoute({
   component: () => (
     <>
       <Outlet />
+      <Boot />
+      <Cursor />
+      <CompanyPreview />
       <PopoverHost />
       <CommandPalette />
       <Toast />
@@ -65,6 +71,15 @@ const router = createRouter({
   scrollRestoration: true,
 });
 
+try {
+  if (
+    sessionStorage.getItem(BOOT_KEY) ||
+    matchMedia("(prefers-reduced-motion: reduce)").matches
+  )
+    document.documentElement.dataset.booted = "1";
+} catch {
+  document.documentElement.dataset.booted = "1";
+}
 Object.assign(document.body.style, PAPER);
 document.body.className =
   "m-0 bg-cream font-mono text-[13px] text-ink antialiased";

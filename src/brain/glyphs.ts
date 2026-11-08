@@ -7,9 +7,9 @@ import type { Region } from "./points.ts";
  */
 export type Dot = [number, number, number];
 
-const TAU = Math.PI * 2;
+export const TAU = Math.PI * 2;
 
-const ring = (
+export const ring = (
   out: Dot[],
   cx: number,
   cy: number,
@@ -24,7 +24,7 @@ const ring = (
   }
 };
 
-const line = (
+export const line = (
   out: Dot[],
   x0: number,
   y0: number,
@@ -40,7 +40,7 @@ const line = (
 };
 
 /** Filled ellipse as concentric rings, which reads rounder than a grid. */
-const blob = (
+export const blob = (
   out: Dot[],
   cx: number,
   cy: number,
@@ -61,7 +61,7 @@ const blob = (
   }
 };
 
-const cluster = (out: Dot[], cx: number, cy: number, a: number) => {
+export const cluster = (out: Dot[], cx: number, cy: number, a: number) => {
   out.push(
     [cx - 1, cy - 1, a],
     [cx + 1, cy - 1, a],

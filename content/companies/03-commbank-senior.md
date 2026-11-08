@@ -6,6 +6,7 @@ start: Nov 2022
 end: Mar 2025
 highlight: Murex trading platform · 60% cloud cost saved · 95% faster deploys
 url: https://www.commbank.com.au
+region: tech
 stack: [Angular, Python Lambda, API Gateway, DynamoDB, AWS CDK, Step Functions]
 ---
 

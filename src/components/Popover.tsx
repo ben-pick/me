@@ -30,6 +30,7 @@ import {
 } from "../lib/store.ts";
 import { formatDate } from "./Logs.tsx";
 import { Markdown } from "./Markdown.tsx";
+import { NowPlaying } from "./NowPlaying.tsx";
 import { Brackets, Chip, Grain } from "./ui.tsx";
 
 /* ------------------------------------------------------------------ */
@@ -321,13 +322,7 @@ const InterestBody = ({ i }: { i: Interest }) => (
         <Meta key={f.k} k={f.k} v={f.v} />
       ))}
     </div>
-    {i.media ? (
-      <div className="relative grid h-24 place-items-center bg-panel text-[11px] uppercase text-soft">
-        <Brackets className="m-2 text-cream/60" />
-        <Grain />
-        {i.media}
-      </div>
-    ) : null}
+    {i.slug === "djing" ? <NowPlaying tone="ink" /> : null}
   </>
 );
 

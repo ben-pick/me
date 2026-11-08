@@ -53,6 +53,26 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 | Brain: drag, click, `←` `→` `↵` | Rotate with inertia, select, open |
 | Terminal | `help`, `ls`, `cat now.txt`, `projects`, `logs`, `open <name>`, `gh`, `neofetch`, `sudo hire ben`, `clear` / `⌃L`, tab-complete, `↑` history |
 
+## Motion
+
+- **Boot**: first visit per session plays a short terminal boot, then wipes away; the
+  name drops in letter by letter and the brain's dots fly in. Skipped on repeat
+  visits and with reduced motion (an inline script in the root decides before paint).
+- **Cursor**: on fine pointers, corner brackets glide to frame whatever you hover, with
+  a label (`data-cursor="…"` overrides it).
+- **Brain attention**: elements with `data-region` light up that brain region when they
+  reach the middle of the screen. Company rows take it from `region:` in their content
+  file. Once the header scrolls away, a mini-brain docks bottom-right while you scroll.
+- **Company previews**: each row has a dot-matrix vignette that trails the cursor
+  (`src/brain/company-glyphs.ts`).
+- **Scroll reveals**: section headings scramble into place and their rules draw across.
+
+## Now playing
+
+`content/now-playing.md` sets the song. Put an audio file in `public/` (a clip you
+have the rights to) and set `audio:` to its path. Playing it pulses the brain's DJing
+region and spins the docked brain faster. `play` in the terminal does the same.
+
 ## Brain
 
 `src/brain/points.ts` builds the procedural point cloud (from the approved

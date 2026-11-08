@@ -8,7 +8,8 @@ export type Line =
 export type Effect =
   | { readonly type: "clear" }
   | { readonly type: "open"; readonly hash: string }
-  | { readonly type: "github" };
+  | { readonly type: "github" }
+  | { readonly type: "play" };
 
 export interface Result {
   readonly lines: ReadonlyArray<Line>;
@@ -28,6 +29,7 @@ export const COMMANDS: Record<string, string> = {
   logs: "latest logs and build logs",
   open: "open a popover — `open nooks`",
   gh: "recent GitHub activity",
+  play: "play my current favourite song",
   neofetch: "system info",
   whoami: "who you are talking to",
   "sudo hire ben": "you know you want to",
@@ -136,6 +138,13 @@ export const run = (input: string, content: Content): Result => {
             ),
           dim("⌥1 opens the latest"),
         ],
+      };
+    case "play":
+      return {
+        lines: [
+          dim(`♪ ${content.nowPlaying.title} — ${content.nowPlaying.artist}`),
+        ],
+        effect: { type: "play" },
       };
     case "gh":
       return {

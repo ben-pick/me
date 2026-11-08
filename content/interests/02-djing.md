@@ -9,5 +9,4 @@ facts:
   - { k: Genres, v: "[Your genres]" }
   - { k: Setup, v: "[Controller / decks]" }
   - { k: Listen, v: "[Mix link]" }
-media: "[Mix embed URL]"
 ---

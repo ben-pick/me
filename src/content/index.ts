@@ -1,6 +1,13 @@
 import content from "virtual:content";
 
-export type { Company, Content, Interest, Log, Project } from "./types.ts";
+export type {
+  Company,
+  Content,
+  Interest,
+  Log,
+  NowPlaying,
+  Project,
+} from "./types.ts";
 export { content };
 
 export const companyBySlug = (slug: string) =>

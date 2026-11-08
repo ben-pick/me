@@ -151,6 +151,18 @@
   button {
     cursor: pointer;
   }
+  /* The custom cursor replaces the native one, except where you type. */
+  html[data-cursor="on"],
+  html[data-cursor="on"] * {
+    cursor: none !important;
+  }
+  html[data-cursor="on"] :is(input, textarea, [contenteditable="true"]) {
+    cursor: text !important;
+  }
+  /* Hold the name's entrance until the boot panel has wiped away. */
+  html:not([data-booted]) {
+    --boot-delay: 1350ms;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

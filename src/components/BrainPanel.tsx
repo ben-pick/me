@@ -9,12 +9,13 @@ import {
 } from "../brain/points.ts";
 import type { BrainScene } from "../brain/scene.ts";
 import { interestBySlug } from "../content/index.ts";
+import { audioLevel } from "../lib/audio.ts";
 import { cx } from "../lib/cx.ts";
 import { useReducedMotion } from "../lib/hooks.ts";
 import { actions, getState, useStore } from "../lib/store.ts";
 import { Brackets, Grain } from "./ui.tsx";
 
-const asRegion = (s: string): Region =>
+export const asRegion = (s: string): Region =>
   ((REGIONS as ReadonlyArray<string>).find((r) => r === s) as Region) ??
   "bouldering";
 
@@ -45,6 +46,8 @@ export const BrainPanel = () => {
   const reduced = useReducedMotion();
   const selected = asRegion(useStore((s) => s.interest));
   const hovered = useStore((s) => s.hoverInterest);
+  const booted = useStore((s) => s.booted);
+  const attention = useStore((s) => s.attention);
   const shown = interestBySlug(hovered ?? selected);
 
   // Still frame: drawn on mount and whenever the selection changes.
@@ -89,7 +92,8 @@ export const BrainPanel = () => {
 
   // Lazy-load the WebGL scene when the panel approaches the viewport.
   useEffect(() => {
-    if (reduced) return;
+    // Wait for the boot panel so the dots assemble in plain sight.
+    if (reduced || !booted) return;
     const el = host.current;
     if (!el) return;
     let cancelled = false;
@@ -108,6 +112,7 @@ export const BrainPanel = () => {
             onHover: (r) => actions.hoverInterest(r),
             onPick: (r, x, y) => openInterest(r, x, y, host.current),
             onReady: () => setLive(true),
+            beat: audioLevel,
           });
         });
       },
@@ -121,7 +126,11 @@ export const BrainPanel = () => {
       scene.current = null;
       setLive(false);
     };
-  }, [reduced]);
+  }, [reduced, booted]);
+
+  useEffect(() => {
+    scene.current?.setAttention(attention ? asRegion(attention) : null);
+  }, [attention]);
 
   // Selections from elsewhere (palette, deep link) swing the camera too.
   useEffect(() => {
@@ -175,7 +184,7 @@ export const BrainPanel = () => {
   };
 
   return (
-    <div className="relative">
+    <div id="brain-panel" className="relative">
       <Brackets className="-m-2 text-ink" />
       <div
         ref={host}

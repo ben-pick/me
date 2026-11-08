@@ -5,7 +5,10 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { BOOT_KEY, Boot } from "../components/Boot.tsx";
 import { CommandPalette } from "../components/CommandPalette.tsx";
+import { CompanyPreview } from "../components/CompanyPreview.tsx";
+import { Cursor } from "../components/Cursor.tsx";
 import { PopoverHost } from "../components/Popover.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
@@ -31,6 +34,12 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/og.png" },
       { name: "twitter:card", content: "summary_large_image" },
+    ],
+    scripts: [
+      {
+        // Before first paint: skip the boot panel on repeat visits or with reduced motion.
+        children: `try{if(sessionStorage.getItem("${BOOT_KEY}")||matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.dataset.booted="1"}catch(e){document.documentElement.dataset.booted="1"}`,
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -64,6 +73,9 @@ function RootComponent() {
   return (
     <RootDocument>
       <Outlet />
+      <Boot />
+      <Cursor />
+      <CompanyPreview />
       <PopoverHost />
       <CommandPalette />
       <Toast />

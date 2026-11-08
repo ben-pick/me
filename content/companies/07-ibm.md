@@ -7,6 +7,7 @@ start: Mar 2019
 end: Mar 2020
 highlight: Cloud / Security · IBM Verify Wear OS app · 100K+ downloads
 url: https://www.ibm.com/verify
+region: bouldering
 stack: [Kotlin, Wear OS, Gatling, TypeScript]
 ---
 

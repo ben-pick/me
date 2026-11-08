@@ -27,6 +27,8 @@ import {
 export interface BrainScene {
   /** Select a region and swing the camera toward it. */
   focus(region: Region): void;
+  /** Glow a region because of what's on screen elsewhere (null clears). */
+  setAttention(region: Region | null): void;
   dispose(): void;
 }
 
@@ -37,6 +39,8 @@ export interface BrainOptions {
   readonly selected: Region;
   readonly onHover: (region: Region | null) => void;
   readonly onPick: (region: Region, clientX: number, clientY: number) => void;
+  /** Music level 0–1, read every frame. */
+  readonly beat?: () => number;
   /** Called once the first frame is on screen. */
   readonly onReady: () => void;
 }
@@ -49,6 +53,9 @@ const CAMERA_Z = 3.2;
 const pointsVertex = /* glsl */ `
   attribute float aRegion;
   attribute float aSeed;
+  attribute vec3 aScatter;
+  uniform float uAssemble;
+  uniform float uBeat;
   uniform float uSel[${REGIONS.length}];
   uniform float uHov[${REGIONS.length}];
   uniform float uPR;
@@ -68,8 +75,17 @@ const pointsVertex = /* glsl */ `
     }
     hov *= 1.0 - sel;
 
-    // Selected regions breathe outward a touch.
-    vec3 p = position * (1.0 + sel * 0.025 * (0.5 + 0.5 * sin(uTime * 2.4 + aSeed * 6.0)));
+    // On load every dot flies in from a scattered cloud, staggered by seed.
+    float seed = fract(abs(aSeed));
+    float local = clamp(uAssemble * 1.6 - seed * 0.6, 0.0, 1.0);
+    local = 1.0 - pow(1.0 - local, 3.0);
+    vec3 home = mix(aScatter, position, local);
+
+    // Selected regions breathe outward a touch; the DJing region (index 1)
+    // also kicks with the music.
+    float dj = 1.0 - step(0.5, abs(aRegion - 1.0));
+    vec3 p = home * (1.0 + sel * 0.025 * (0.5 + 0.5 * sin(uTime * 2.4 + aSeed * 6.0)) + dj * uBeat * 0.06);
+    sel = max(sel, dj * uBeat);
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     float t = clamp((mv.z + ${CAMERA_Z.toFixed(1)} + 1.3) / 2.6, 0.0, 1.0);
 
@@ -78,6 +94,7 @@ const pointsVertex = /* glsl */ `
     float a = mix(mix(mix(0.08 + 0.4 * t, 0.12 + 0.5 * t, labelled), 0.25 + 0.6 * t, hov), 0.35 + 0.65 * t, sel);
     float s = mix(mix(mix(0.7 + t, 0.8 + 1.1 * t, labelled), 1.0 + 1.3 * t, hov), 1.3 + 1.6 * t, sel);
     a *= 0.86 + 0.14 * sin(uTime * 1.3 + aSeed * 40.0);
+    a *= 0.25 + 0.75 * local;
 
     vColor = vec4(col, a);
     gl_PointSize = s * uPR * uScale;
@@ -157,6 +174,21 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
   geometry.setAttribute("position", new BufferAttribute(brain.positions, 3));
   geometry.setAttribute("aRegion", new BufferAttribute(brain.regions, 1));
   geometry.setAttribute("aSeed", new BufferAttribute(brain.seeds, 1));
+  const scatter = new Float32Array(brain.positions.length);
+  for (let i = 0; i < brain.seeds.length; i++) {
+    const x = brain.positions[i * 3] ?? 0;
+    const y = brain.positions[i * 3 + 1] ?? 0;
+    const z = brain.positions[i * 3 + 2] ?? 0;
+    const s = brain.seeds[i] ?? 0;
+    const L = Math.hypot(x, y, z) || 1;
+    const out = 2.4 + Math.abs(Math.sin(s * 91.7)) * 2.2;
+    scatter[i * 3] = (x / L) * out + Math.sin(s * 13.1) * 0.6;
+    scatter[i * 3 + 1] = (y / L) * out + Math.cos(s * 7.3) * 0.6;
+    scatter[i * 3 + 2] = (z / L) * out;
+  }
+  geometry.setAttribute("aScatter", new BufferAttribute(scatter, 3));
+  const uAssemble = { value: 0 };
+  const uBeat = { value: 0 };
 
   const sel = REGIONS.map(() => 0);
   const hov = REGIONS.map(() => 0);
@@ -173,6 +205,8 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
       uHov: { value: hov },
       uPR,
       uScale,
+      uAssemble,
+      uBeat,
       uTime: uTimePts,
     },
     transparent: true,
@@ -221,6 +255,14 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
   let vpitch = 0;
   let selected: Region = opts.selected;
   let hovered: Region | null = null;
+  /** Region tied to what's on screen elsewhere on the page. */
+  let attention: Region | null = null;
+  // Idle tilt toward the cursor anywhere on the page.
+  let lookX = 0;
+  let lookY = 0;
+  let offYaw = 0;
+  let offPitch = 0;
+  const born = performance.now();
   let aim: { yaw: number; pitch: number; until: number } | null = null;
   let drag: { x: number; y: number; moved: number } | null = null;
   const levels = Object.fromEntries(
@@ -373,14 +415,31 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
     const e = 1 - Math.exp(-dt * 10);
     for (const r of REGIONS) {
       levels[r] += ((r === selected ? 1 : 0) - levels[r]) * e;
-      hoverLevels[r] += ((r === hovered ? 1 : 0) - hoverLevels[r]) * e;
+      const glow = r === (hovered ?? attention) ? 1 : 0;
+      hoverLevels[r] += (glow - hoverLevels[r]) * e;
     }
     REGIONS.forEach((r, i) => {
       sel[i] = levels[r];
       hov[i] = hoverLevels[r];
     });
 
-    group.rotation.set(pitch, yaw, 0, "XYZ");
+    // Lean toward the cursor unless the user is driving.
+    const le = 1 - Math.exp(-dt * 3);
+    const follow = drag || aim ? 0 : 1;
+    offYaw += (lookX * 0.35 * follow - offYaw) * le;
+    offPitch += (lookY * 0.18 * follow - offPitch) * le;
+    const ry = yaw + offYaw;
+    const rp = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch + offPitch));
+
+    uAssemble.value = Math.min(1, (now - born) / 1800);
+    // Labels arrive once the dots have mostly landed.
+    opts.labels.style.opacity = Math.min(
+      1,
+      Math.max(0, (uAssemble.value - 0.55) * 2.5),
+    ).toFixed(3);
+    uBeat.value = opts.beat?.() ?? 0;
+
+    group.rotation.set(rp, ry, 0, "XYZ");
     const t = now / 1000;
     uTimePts.value = t;
     uTimePost.value = t;
@@ -398,8 +457,8 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
       screen = drawLabels(
         labels,
         brain.anchors,
-        yaw,
-        pitch,
+        ry,
+        rp,
         w * dpr,
         h * dpr,
         dpr,
@@ -434,13 +493,24 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
   document.addEventListener("visibilitychange", onVis);
   start();
 
+  const onLook = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    lookX = (e.clientX / window.innerWidth) * 2 - 1;
+    lookY = (e.clientY / window.innerHeight) * 2 - 1;
+  };
+  window.addEventListener("pointermove", onLook, { passive: true });
+
   return {
     focus,
+    setAttention(region: Region | null) {
+      attention = region;
+    },
     dispose() {
       stop();
       io.disconnect();
       ro.disconnect();
       document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pointermove", onLook);
       opts.host.removeEventListener("pointerdown", onDown);
       opts.host.removeEventListener("pointermove", onMove);
       opts.host.removeEventListener("pointerup", onUp);

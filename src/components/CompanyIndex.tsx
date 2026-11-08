@@ -46,7 +46,10 @@ export const CompanyIndex = () => {
       <div
         ref={list}
         className="relative"
-        onPointerLeave={() => setActive(null)}
+        onPointerLeave={() => {
+          setActive(null);
+          actions.setPreview(null);
+        }}
         onBlur={(e) => {
           if (!list.current?.contains(e.relatedTarget as Node | null))
             setActive(null);
@@ -67,17 +70,23 @@ export const CompanyIndex = () => {
               key={c.slug}
               type="button"
               aria-haspopup="dialog"
-              onPointerEnter={(e) => activate(i, e.currentTarget)}
+              data-region={c.region}
+              onPointerEnter={(e) => {
+                activate(i, e.currentTarget);
+                if (e.pointerType === "mouse") actions.setPreview(c.slug);
+                if (c.region) actions.setAttention(c.region);
+              }}
               onFocus={(e) => activate(i, e.currentTarget)}
-              onClick={(e) =>
+              onClick={(e) => {
+                actions.setPreview(null);
                 actions.openPopover(
                   { kind: "company", slug: c.slug },
                   {
                     anchor: anchorFrom(e.currentTarget, e),
                     trigger: e.currentTarget,
                   },
-                )
-              }
+                );
+              }}
               className={cx(
                 "relative grid w-full grid-cols-[32px_1fr] items-baseline gap-x-4 gap-y-2 border-0 border-ink border-b bg-transparent py-[22px] text-left font-mono transition-colors duration-300 focus-visible:outline-none",
                 COLS,

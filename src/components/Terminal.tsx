@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { content } from "../content/index.ts";
+import { toggleSong } from "../lib/audio.ts";
 import { cx } from "../lib/cx.ts";
 import { complete, type Line, run } from "../lib/terminal.ts";
 
@@ -94,6 +95,7 @@ export const Terminal = () => {
         window.location.hash = hash;
       }, 250);
     }
+    if (result.effect?.type === "play") void toggleSong();
     if (result.effect?.type === "github") {
       void fetchGithub().then((lines) =>
         setHistory((h) => [...h, entry(null, lines)]),
@@ -135,6 +137,7 @@ export const Terminal = () => {
     // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: clicking the panel just focuses the input, which is keyboard-reachable itself
     <div
       id="terminal"
+      data-region="tech"
       onClick={() => {
         if (!window.getSelection()?.toString())
           input.current?.focus({ preventScroll: true });

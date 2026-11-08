@@ -6,6 +6,7 @@ start: Jan 2026
 end: Now
 highlight: Re-envisioning loyalty for any site · white-label rewards & embeddable offers
 url: https://thanks.co
+region: dogs
 stack: [Cloudflare Workers, React, Next.js, Node.js, TypeScript, MySQL (PlanetScale), Pulumi, GitHub Actions]
 ---
 
