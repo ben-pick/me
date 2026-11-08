@@ -1,4 +1,5 @@
 import { GLYPH_H, GLYPH_W, GLYPHS } from "./glyphs.ts";
+import { createHalftone, type Halftone } from "./halftone.ts";
 
 /**
  * Procedural brain point cloud, ported from the approved prototype. Regions are
@@ -240,28 +241,36 @@ const drawCallout = (
     ctx.lineTo(x, y - sy * k);
   }
   ctx.stroke();
-  ctx.font = `${9 * dpr}px "JetBrains Mono", monospace`;
-  ctx.textAlign = "left";
-  ctx.fillStyle = `rgba(138,138,138,${e})`;
-  ctx.fillText(
-    `FIG. ${NAMES[item.region].slice(0, 2)}`,
-    fx - fw + 7 * dpr,
-    fy + fh - 8 * dpr,
-  );
-
-  const dots = GLYPHS[item.region](time);
-  const n = dots.length;
-  const size = 1.6 * dpr;
-  dots.forEach(([x, y, a], i) => {
-    const local = easeOut(Math.min(1, Math.max(0, p * 1.7 - (i / n) * 0.7)));
-    if (local <= 0) return;
+  const ht = halftone(GLYPH_W, GLYPH_H);
+  if (!ht) return;
+  const cells = ht.render(GLYPHS[item.region], time);
+  const pitch = ht.pitch * dpr;
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i];
+    if (!cell) continue;
+    const [x, y, lum] = cell;
+    // Scatter the order so dots fly in as a shimmer, not row by row.
+    const order = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+    const local = easeOut(
+      Math.min(1, Math.max(0, p * 1.7 - Math.abs(order) * 0.7)),
+    );
+    if (local <= 0) continue;
     const tx = bx + x * dpr;
-    const ty = by + (y - 2) * dpr;
+    const ty = by + y * dpr;
     const px = ax + (tx - ax) * local;
     const py = ay + (ty - ay) * local;
-    ctx.fillStyle = `rgba(236,229,225,${(a * local).toFixed(3)})`;
+    const size =
+      pitch * Math.min(1, Math.sqrt(lum) * 0.95) * (0.5 + local * 0.5);
+    ctx.fillStyle = `rgba(236,229,225,${(Math.min(1, 0.35 + lum) * local).toFixed(3)})`;
     ctx.fillRect(px - size / 2, py - size / 2, size, size);
-  });
+  }
+};
+
+let sharedHalftone: Halftone | null | undefined;
+/** One offscreen canvas for every callout, made on first use. */
+const halftone = (w: number, h: number) => {
+  if (sharedHalftone === undefined) sharedHalftone = createHalftone(w, h);
+  return sharedHalftone;
 };
 
 /** Leader lines, labels and (for the selected region) its animated callout. */

@@ -1,6 +1,7 @@
 import { BrainPanel } from "../components/BrainPanel.tsx";
 import { CompanyIndex } from "../components/CompanyIndex.tsx";
 import { Contact } from "../components/Contact.tsx";
+import { ContributionGraph } from "../components/ContributionGraph.tsx";
 import { Logs } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { NowPlaying } from "../components/NowPlaying.tsx";
@@ -69,11 +70,12 @@ export function Home() {
               full-stack web apps and cloud architecture — and I'm building
               Nooks.
             </p>
-            <NowPlaying />
+            <NowPlaying host />
           </div>
         </header>
         <CompanyIndex />
         <Projects />
+        <ContributionGraph />
         <section
           aria-label="Terminal and logs"
           className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3.5"

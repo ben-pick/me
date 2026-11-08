@@ -4,6 +4,9 @@ import {
   audioBands,
   canPlay,
   isPlaceholder,
+  SPOTIFY_MOUNT_ID,
+  STATIC_BUILD,
+  spotifyTrack,
   toggleSong,
 } from "../lib/audio.ts";
 import { cx } from "../lib/cx.ts";
@@ -50,52 +53,105 @@ const Meter = ({ playing }: { playing: boolean }) => {
 };
 
 /** Current favourite song: play it, and the brain's DJing region moves with it. */
-export const NowPlaying = ({ tone = "cream" }: { tone?: "cream" | "ink" }) => {
+export const NowPlaying = ({
+  tone = "cream",
+  host = false,
+}: {
+  tone?: "cream" | "ink";
+  host?: boolean;
+}) => {
   const playing = useStore((s) => s.playing);
+  const open = useStore((s) => s.playerOpen);
   const song = content.nowPlaying;
   const playable = canPlay();
+  const spotify = spotifyTrack() !== null;
+  const named = !isPlaceholder(song.title) && !isPlaceholder(song.artist);
+  // The static build can't embed Spotify, so its button opens the track instead.
+  const linkOut = STATIC_BUILD && spotify && !playable;
+  const buttonClass = cx(
+    "group relative grid size-11 shrink-0 place-items-center border-0 bg-transparent font-mono text-[13px] no-underline transition-transform duration-200 active:scale-90",
+    tone === "cream" ? "text-ink" : "text-current",
+    !playable && !linkOut && "opacity-50",
+  );
+  const icon = (
+    <>
+      <Brackets />
+      <span className="transition-transform duration-300 ease-out-expo group-hover:scale-110">
+        {playing ? "❚❚" : "▶"}
+      </span>
+    </>
+  );
   return (
-    <div
-      className={cx(
-        "flex max-w-[480px] items-center gap-4 border py-2 pr-4 pl-2",
-        tone === "cream" ? "border-ink/40" : "border-current/25",
-      )}
-    >
-      <button
-        type="button"
-        onClick={() => void toggleSong()}
-        aria-label={playing ? "Pause" : `Play ${song.title} by ${song.artist}`}
-        aria-pressed={playing}
-        data-cursor={playing ? "Pause" : playable ? "Play" : "No file yet"}
+    <div className="flex max-w-[480px] flex-col gap-2">
+      <div
         className={cx(
-          "group relative grid size-11 shrink-0 place-items-center border-0 bg-transparent font-mono text-[13px] transition-transform duration-200 active:scale-90",
-          tone === "cream" ? "text-ink" : "text-current",
-          !playable && "opacity-50",
+          "flex items-center gap-4 border py-2 pr-4 pl-2",
+          tone === "cream" ? "border-ink/40" : "border-current/25",
         )}
       >
-        <Brackets />
-        <span className="transition-transform duration-300 ease-out-expo group-hover:scale-110">
-          {playing ? "❚❚" : "▶"}
+        {linkOut ? (
+          <a
+            href={song.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Play on Spotify"
+            data-cursor="Play on Spotify ↗"
+            className={buttonClass}
+          >
+            {icon}
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void toggleSong()}
+            aria-label={
+              playing
+                ? "Pause"
+                : named
+                  ? `Play ${song.title} by ${song.artist}`
+                  : "Play my current favourite song"
+            }
+            aria-pressed={playing}
+            data-cursor={playing ? "Pause" : playable ? "Play" : "No song yet"}
+            className={buttonClass}
+          >
+            {icon}
+          </button>
+        )}
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-[11px] uppercase">
+          <span className="opacity-60">
+            {playing ? "Now playing" : "On repeat"}
+          </span>
+          <span className="truncate">
+            {named
+              ? `${song.title} — ${song.artist}`
+              : spotify
+                ? "Current favourite · Spotify"
+                : "[Add a song]"}
+          </span>
         </span>
-      </button>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-[11px] uppercase">
-        <span className="opacity-60">
-          {playing ? "Now playing" : "On repeat"}
-        </span>
-        <span className="truncate">
-          {song.title} — {song.artist}
-        </span>
-      </span>
-      <Meter playing={playing} />
-      {song.url && !isPlaceholder(song.url) ? (
-        <a
-          href={song.url}
-          target="_blank"
-          rel="noreferrer"
-          className="shrink-0 text-[11px] uppercase no-underline opacity-70 hover:opacity-100"
+        <Meter playing={playing} />
+        {song.url && !isPlaceholder(song.url) ? (
+          <a
+            href={song.url}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 text-[11px] uppercase no-underline opacity-70 hover:opacity-100"
+          >
+            {spotify ? "Spotify ↗" : "Full ↗"}
+          </a>
+        ) : null}
+      </div>
+      {host && spotify && !STATIC_BUILD ? (
+        // Spotify's embedded player mounts here on first play.
+        <div
+          className={cx(
+            "overflow-hidden transition-[height,opacity] duration-500 ease-out-expo",
+            open ? "h-20 opacity-100" : "h-0 opacity-0",
+          )}
         >
-          Full ↗
-        </a>
+          <div id={SPOTIFY_MOUNT_ID} />
+        </div>
       ) : null}
     </div>
   );

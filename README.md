@@ -67,8 +67,10 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 
 ## Now playing
 
-`content/now-playing.md` sets the song. Put an audio file in `public/` (a clip you
-have the rights to) and set `audio:` to its path. Playing it pulses the brain's DJing
+`content/now-playing.md` sets the song. A Spotify track link in `url:` plays through
+Spotify's embedded player (it opens under the hero on first play); an audio file in
+`public/` set as `audio:` takes precedence and drives the meter from the real signal.
+The static artifact build can't embed Spotify, so there the button opens the track. Playing it pulses the brain's DJing
 region. `play` in the terminal does the same.
 
 ## Brain
@@ -82,6 +84,14 @@ a still 2D frame stays in place and still works by click and keyboard.
 
 To use a real anatomical model, replace `buildBrain` with points sampled from
 the mesh and keep the same `positions` / `regions` / `anchors` shape.
+
+## GitHub contributions
+
+`/api/contributions` returns the last year of contributions for `GITHUB_USER`, cached
+at the edge for six hours. With a `GITHUB_TOKEN` secret it uses GitHub's GraphQL API;
+without one it reads the public calendar at `github.com/users/<user>/contributions`.
+The Activity section draws it as a halftone grid. The static artifact build has no
+server, so there it shows the empty grid.
 
 ## GitHub activity
 
