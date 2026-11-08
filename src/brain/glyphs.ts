@@ -737,139 +737,158 @@ const tech: SceneFn = (c, t) => {
 
 /* ----------------------------------------------------------- Streetwear */
 
-/** A shoebox lid lifts and a fresh sneaker rises out, turning in the light. */
+/** A clothes rail: an oversized boxy tee and baggy wide-leg pants sway in a breeze. */
 const streetwear: SceneFn = (c, t) => {
-  const cycle = t % 5;
-  const open = ease(clamp01(cycle / 0.8));
-  const rise = ease(clamp01((cycle - 0.5) / 1));
-  const settle = cycle > 4.3 ? ease(clamp01((cycle - 4.3) / 0.7)) : 0;
-  const lift = rise * (1 - settle);
-  const bob = Math.sin(t * 2.2) * 2 * lift;
-  const sway = Math.sin(t * 1.3) * 0.08 * lift;
+  const breeze = (x: number, phase: number) =>
+    Math.sin(t * 2.2 + x * 0.12 + phase) * 1.8;
 
-  // Box base
-  glow(c, 0, 46, 60, 50);
-  c.fillStyle = shade(c, 22, 50, 170, 70);
-  c.beginPath();
-  c.moveTo(-48, 24);
-  c.lineTo(48, 24);
-  c.lineTo(52, 50);
-  c.lineTo(-52, 50);
-  c.closePath();
-  c.fill();
-  c.fillStyle = gray(25);
-  c.fillRect(-46, 24, 92, 4);
-  // Tissue paper peeking out
-  c.fillStyle = gray(200, 0.8 * open);
-  c.beginPath();
-  c.moveTo(-40, 25);
-  c.quadraticCurveTo(-20, 16 - open * 6, 0, 24);
-  c.quadraticCurveTo(20, 15 - open * 6, 40, 25);
-  c.closePath();
-  c.fill();
-  // Lid swings up and back
-  c.save();
-  c.translate(48, 24);
-  c.rotate(-open * 1.9 * (1 - settle));
-  c.fillStyle = shade(c, -10, 0, 230, 140);
-  c.fillRect(-100, -7, 104, 7);
-  c.restore();
+  // Rail + uprights
+  c.fillStyle = shade(c, -50, -44, 230, 140);
+  c.fillRect(-66, -50, 132, 3);
+  c.fillStyle = gray(110);
+  c.fillRect(-66, -50, 2, 104);
+  c.fillRect(64, -50, 2, 104);
+  glow(c, 0, 52, 70, 40);
 
-  // Sneaker
-  c.save();
-  c.translate(0, 8 - lift * 34 + bob);
-  c.rotate(sway);
-  const s = 1.25 + lift * 0.12;
-  c.scale(s, s);
-  // Outsole with tread
-  c.fillStyle = shade(c, 6, 12, 230, 160);
-  c.beginPath();
-  c.moveTo(-40, 6);
-  c.lineTo(36, 6);
-  c.quadraticCurveTo(44, 7, 42, 12);
-  c.lineTo(-38, 12);
-  c.quadraticCurveTo(-44, 10, -40, 6);
-  c.fill();
-  c.fillStyle = gray(60);
-  for (let x = -36; x < 38; x += 5) c.fillRect(x, 11, 2.5, 1.5);
-  // Upper
-  c.fillStyle = shade(c, -20, 7, 250, 150);
-  c.beginPath();
-  c.moveTo(-38, 6);
-  c.lineTo(-38, -10);
-  c.quadraticCurveTo(-36, -18, -26, -18);
-  c.lineTo(-14, -16);
-  c.quadraticCurveTo(0, -6, 20, -4);
-  c.quadraticCurveTo(38, -2, 40, 6);
-  c.closePath();
-  c.fill();
-  // Toe cap + heel tab (darker panels)
-  c.fillStyle = gray(120);
-  c.beginPath();
-  c.moveTo(22, -3);
-  c.quadraticCurveTo(38, -1, 40, 6);
-  c.lineTo(24, 6);
-  c.closePath();
-  c.fill();
-  c.fillRect(-38, -12, 6, 16);
-  // Side stripe
-  c.strokeStyle = gray(40);
-  c.lineWidth = 3;
-  c.beginPath();
-  c.moveTo(-24, 2);
-  c.quadraticCurveTo(-4, -4, 18, -10);
-  c.stroke();
-  // Collar opening
-  c.fillStyle = gray(30);
-  c.beginPath();
-  c.ellipse(-24, -16, 9, 3, 0.1, 0, Math.PI * 2);
-  c.fill();
-  // Laces swing with the bob
-  c.strokeStyle = gray(255);
-  c.lineWidth = 1.6;
-  for (let k = 0; k < 4; k++) {
-    const x = -12 + k * 6;
-    const y = -13 + k * 2.4;
+  const hanger = (x: number) => {
+    c.strokeStyle = gray(230);
+    c.lineWidth = 1.6;
     c.beginPath();
-    c.moveTo(x - 3, y - 1);
-    c.lineTo(x + 3, y + 1.5);
+    c.arc(x, -46, 3, Math.PI, Math.PI * 2.4);
+    c.moveTo(x, -43);
+    c.lineTo(x, -40);
+    c.stroke();
+  };
+
+  /* Oversized tee: dropped shoulders, boxy body, elbow-length sleeves. */
+  c.save();
+  c.translate(-28, -40);
+  c.rotate(Math.sin(t * 1.1) * 0.05);
+  c.translate(28, 40);
+  hanger(-28);
+  c.strokeStyle = gray(230);
+  c.lineWidth = 1.6;
+  c.beginPath();
+  c.moveTo(-48, -32);
+  c.lineTo(-28, -40);
+  c.lineTo(-8, -32);
+  c.stroke();
+  const hem = (x: number) => 30 + breeze(x, 0);
+  c.fillStyle = shade(c, -38, 32, 245, 120);
+  c.beginPath();
+  c.moveTo(-36, -37); // collar left
+  c.quadraticCurveTo(-28, -31, -20, -37); // neckline
+  c.lineTo(-2, -32); // right shoulder (dropped, wide)
+  c.lineTo(8, -10); // right sleeve outer
+  c.lineTo(-2, -6); // right sleeve hem
+  c.lineTo(-4, -12); // underarm
+  c.lineTo(-4, 30);
+  for (let x = -4; x >= -52; x -= 4) c.lineTo(x, hem(x));
+  c.lineTo(-52, -12);
+  c.lineTo(-54, -6);
+  c.lineTo(-64, -10);
+  c.lineTo(-54, -32);
+  c.closePath();
+  c.fill();
+  // Collar rib
+  c.strokeStyle = gray(120);
+  c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(-36, -37);
+  c.quadraticCurveTo(-28, -30, -20, -37);
+  c.stroke();
+  // Folds + shadow under the dropped shoulders
+  c.strokeStyle = gray(110, 0.7);
+  c.lineWidth = 1.2;
+  for (const [x0, y0, x1, y1] of [
+    [-44, -8, -40, 26],
+    [-30, -2, -32, 28],
+    [-16, -10, -12, 26],
+  ] as const) {
+    c.beginPath();
+    c.moveTo(x0, y0);
+    c.quadraticCurveTo(
+      (x0 + x1) / 2 + breeze(x0, 1) * 0.6,
+      (y0 + y1) / 2,
+      x1,
+      y1,
+    );
     c.stroke();
   }
-  c.beginPath();
-  c.moveTo(-14, -14);
-  c.quadraticCurveTo(
-    -18 + Math.sin(t * 3) * 3,
-    -4,
-    -16 + Math.sin(t * 3 + 1) * 4,
-    2,
-  );
-  c.stroke();
+  // Chest graphic
+  c.fillStyle = gray(40);
+  c.fillRect(-36, -22, 16, 9);
+  c.fillStyle = gray(220);
+  c.fillRect(-34, -20, 5, 5);
+  c.fillRect(-27, -20, 5, 2);
+  c.fillRect(-27, -17, 3, 2);
   c.restore();
 
-  // Sparkles once it's out of the box
-  if (lift > 0.6) {
-    for (let k = 0; k < 4; k++) {
-      const ph = (t * 0.9 + k / 4) % 1;
-      const x = -46 + k * 30;
-      const y = -40 + Math.sin(k * 2.1) * 8;
-      const r = 4 * Math.sin(ph * Math.PI);
-      c.fillStyle = gray(255, Math.sin(ph * Math.PI));
-      c.beginPath();
-      c.moveTo(x, y - r * 1.6);
-      c.lineTo(x + r * 0.4, y);
-      c.lineTo(x, y + r * 1.6);
-      c.lineTo(x - r * 0.4, y);
-      c.closePath();
-      c.fill();
-      c.beginPath();
-      c.moveTo(x - r * 1.6, y);
-      c.lineTo(x, y + r * 0.4);
-      c.lineTo(x + r * 1.6, y);
-      c.lineTo(x, y - r * 0.4);
-      c.closePath();
-      c.fill();
-    }
+  /* Baggy pants: clipped at the waistband, wide legs stacking at the hem. */
+  c.save();
+  c.translate(32, -40);
+  c.rotate(Math.sin(t * 1.1 + 1.2) * 0.05);
+  c.translate(-32, 40);
+  hanger(32);
+  c.strokeStyle = gray(230);
+  c.lineWidth = 1.6;
+  c.beginPath();
+  c.moveTo(14, -36);
+  c.lineTo(50, -36);
+  c.stroke();
+  for (const x of [16, 48]) {
+    c.fillStyle = gray(200);
+    c.fillRect(x - 2, -37, 4, 5);
   }
+  // Waistband
+  c.fillStyle = shade(c, -33, -27, 220, 150);
+  c.fillRect(14, -33, 36, 6);
+  // Legs: widen hard toward the hem, which ripples
+  const legHem = (x: number, ph: number) => 48 + breeze(x, ph);
+  c.fillStyle = shade(c, -27, 50, 210, 85);
+  c.beginPath();
+  c.moveTo(14, -27);
+  c.lineTo(31, -27);
+  c.lineTo(30, -6); // crotch
+  c.lineTo(30, 48);
+  for (let x = 30; x >= 4; x -= 3) c.lineTo(x, legHem(x, 2));
+  c.lineTo(5, 46);
+  c.closePath();
+  c.fill();
+  c.beginPath();
+  c.moveTo(33, -27);
+  c.lineTo(50, -27);
+  c.lineTo(59, 46);
+  for (let x = 60; x >= 34; x -= 3) c.lineTo(x, legHem(x, 2.6));
+  c.lineTo(34, -6);
+  c.closePath();
+  c.fill();
+  // Pleats, cargo pocket and stacked hems
+  c.strokeStyle = gray(70, 0.8);
+  c.lineWidth = 1.2;
+  for (const [x0, x1] of [
+    [20, 14],
+    [26, 22],
+    [40, 44],
+    [45, 52],
+  ] as const) {
+    c.beginPath();
+    c.moveTo(x0, -24);
+    c.quadraticCurveTo((x0 + x1) / 2 + breeze(x0, 3) * 0.5, 14, x1, 44);
+    c.stroke();
+  }
+  c.strokeStyle = gray(240, 0.8);
+  c.strokeRect(46, 6, 9, 11);
+  c.strokeStyle = gray(60);
+  for (let k = 0; k < 3; k++) {
+    c.beginPath();
+    c.moveTo(5, 40 + k * 3);
+    c.quadraticCurveTo(17, 38 + k * 3 + breeze(k * 10, 2), 30, 40 + k * 3);
+    c.moveTo(34, 40 + k * 3);
+    c.quadraticCurveTo(47, 38 + k * 3 + breeze(k * 10, 2.6), 60, 40 + k * 3);
+    c.stroke();
+  }
+  c.restore();
 };
 
 export const GLYPHS: Record<Region, SceneFn> = {

@@ -69,7 +69,7 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 
 `src/brain/points.ts` builds the procedural point cloud (from the approved
 prototype) and draws labels; `src/brain/glyphs.ts` holds each region's animated
-halftone scene (decks, climber, FPS on a PC, dog, code editor, sneaker drop); `src/brain/scene.ts` renders the
+halftone scene (decks, climber, FPS on a PC, dog, code editor, oversized tee and baggy pants on a rail); `src/brain/scene.ts` renders the
 points into an offscreen target, then a film-grain pass. The scene loads when the
 panel nears the viewport and pauses off-screen. With reduced motion or no WebGL,
 a still 2D frame stays in place and still works by click and keyboard.
