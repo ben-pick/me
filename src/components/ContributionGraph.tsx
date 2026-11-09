@@ -1,4 +1,11 @@
-import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type PointerEvent,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { site } from "../content/index.ts";
 import { type Contributions, type Day, toWeeks } from "../lib/contributions.ts";
 import { cx } from "../lib/cx.ts";
@@ -8,6 +15,8 @@ import { useInView } from "../lib/hooks.ts";
 const USER = site.github.user;
 /** Dot size and brightness for GitHub's 0–4 levels, as a share of the cell. */
 const SIZE = [0.2, 0.42, 0.6, 0.78, 0.96];
+/** Space kept between the tooltip and the panel's edge. */
+const TIP_MARGIN = 8;
 const ALPHA = [0.22, 0.55, 0.75, 0.9, 1];
 
 type Status = "loading" | "ready" | "offline";
@@ -71,6 +80,7 @@ export const ContributionGraph = () => {
   const { data, status } = useContributions(seen);
   const days = useMemo(() => data?.days ?? blankYear(), [data]);
   const weeks = useMemo(() => toWeeks(days).slice(-53), [days]);
+  const tip = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<{ day: Day; x: number; y: number } | null>(
     null,
   );
@@ -111,6 +121,16 @@ export const ContributionGraph = () => {
     if (day)
       setHover({ day, x: r.left + r.width / 2 - box.left, y: r.top - box.top });
   };
+
+  // Centred on the day, but slid inward at the panel's edges so it never clips.
+  useLayoutEffect(() => {
+    const el = tip.current;
+    const box = ref.current;
+    if (!el || !box || !hover) return;
+    const half = el.offsetWidth / 2;
+    const left = Math.max(half + TIP_MARGIN, hover.x);
+    el.style.left = `${Math.min(box.clientWidth - half - TIP_MARGIN, left)}px`;
+  }, [hover]);
 
   return (
     <section
@@ -230,6 +250,7 @@ export const ContributionGraph = () => {
       </div>
       {hover ? (
         <div
+          ref={tip}
           className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full border border-cream/30 bg-panel px-2.5 py-1.5 text-[10px] uppercase whitespace-nowrap text-cream"
           style={{ left: hover.x, top: hover.y - 6 }}
         >

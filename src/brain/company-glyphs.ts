@@ -460,13 +460,6 @@ const cloud = (
 
 /** Brands as a scatter; a lens sweeps across and magnifies what it finds. */
 const quantium: SceneFn = (c, t) => {
-  c.strokeStyle = gray(90);
-  c.lineWidth = 1.5;
-  c.beginPath();
-  c.moveTo(-122, -78);
-  c.lineTo(-122, 70);
-  c.lineTo(122, 70);
-  c.stroke();
   CLUSTERS.forEach(([x, y, r], k) => {
     glow(c, x, y, r * 1.3, 70 + k * 30);
   });
