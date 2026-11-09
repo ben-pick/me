@@ -38,21 +38,23 @@ export const SectionHeader = ({
   title,
   caption,
   id,
+  as: Heading = "h2",
 }: {
   title: string;
   caption?: ReactNode;
   id?: string;
+  as?: "h1" | "h2";
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const seen = useInView(ref);
   return (
     <div ref={ref} className="mb-[18px] flex items-baseline gap-4">
-      <h2
+      <Heading
         id={id}
         className="m-0 font-display text-[28px] uppercase leading-none tracking-[-0.02em]"
       >
         {title}
-      </h2>
+      </Heading>
       <span
         aria-hidden="true"
         className={cx(

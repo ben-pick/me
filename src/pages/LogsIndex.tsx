@@ -10,6 +10,7 @@ export function LogsIndex() {
       <Nav />
       <main id="main">
         <SectionHeader
+          as="h1"
           title={site.sections.logs.title}
           caption={entryCount(content.logs.length)}
         />
