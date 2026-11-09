@@ -6,7 +6,7 @@ import { cx } from "../lib/cx.ts";
 import { fuzzyFilter } from "../lib/fuzzy.ts";
 import type { PopoverId } from "../lib/popover-id.ts";
 import { actions, copyEmail, EMAIL, getState, useStore } from "../lib/store.ts";
-import { Grain, Kbd } from "./ui.tsx";
+import { Kbd } from "./ui.tsx";
 
 interface Command {
   readonly id: string;
@@ -277,9 +277,7 @@ export const CommandPalette = () => {
       onOpenChange={(o) => (o ? actions.openPalette() : actions.closePalette())}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in">
-          <Grain className="opacity-40" />
-        </Dialog.Overlay>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
         <Dialog.Content
           onKeyDown={onKeyDown}
           onOpenAutoFocus={(e) => {

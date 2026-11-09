@@ -23,7 +23,6 @@
   --animate-sheet-out: sheet-out 220ms ease-in both;
   --animate-rise: rise 420ms var(--ease-out-expo) both;
   --animate-blink: blink 1.05s steps(1) infinite;
-  --animate-grain: grain 0.9s steps(6) infinite;
   --animate-toast: toast 260ms var(--ease-out-expo) both;
 
   @keyframes pop-in {
@@ -91,34 +90,6 @@
   @keyframes blink {
     50% {
       opacity: 0;
-    }
-  }
-  @keyframes grain {
-    0%,
-    100% {
-      background-position:
-        0 0,
-        0 0;
-    }
-    20% {
-      background-position:
-        -3px 2px,
-        2px -1px;
-    }
-    40% {
-      background-position:
-        2px -3px,
-        -2px 3px;
-    }
-    60% {
-      background-position:
-        -1px 3px,
-        3px 1px;
-    }
-    80% {
-      background-position:
-        3px -1px,
-        -3px -2px;
     }
   }
   @keyframes toast {

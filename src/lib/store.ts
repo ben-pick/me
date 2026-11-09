@@ -29,8 +29,6 @@ interface State {
   readonly interest: string;
   readonly hoverInterest: string | null;
   readonly toast: { id: number; text: string } | null;
-  /** Company slug whose preview follows the cursor. */
-  readonly preview: string | null;
   /** The boot sequence has finished (or was skipped). */
   readonly booted: boolean;
 }
@@ -41,7 +39,6 @@ let state: State = {
   interest: "bouldering",
   hoverInterest: null,
   toast: null,
-  preview: null,
   booted: false,
 };
 const listeners = new Set<() => void>();
@@ -107,9 +104,6 @@ export const actions = {
   },
   hoverInterest(slug: string | null) {
     if (state.hoverInterest !== slug) set({ hoverInterest: slug });
-  },
-  setPreview(slug: string | null) {
-    if (state.preview !== slug) set({ preview: slug });
   },
   setBooted() {
     if (!state.booted) set({ booted: true });

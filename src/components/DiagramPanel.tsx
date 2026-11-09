@@ -5,7 +5,7 @@ import { nodeOf } from "../diagrams/layout.ts";
 import type { DiagramScene, DiagramView } from "../diagrams/scene.ts";
 import { cx } from "../lib/cx.ts";
 import { useReducedMotion } from "../lib/hooks.ts";
-import { Brackets, Grain } from "./ui.tsx";
+import { Brackets } from "./ui.tsx";
 
 const STEP_MS = 3600;
 
@@ -141,7 +141,6 @@ export const DiagramPanel = ({ id }: { id: DiagramId }) => {
             ref={labels}
             className="pointer-events-none absolute inset-0 block size-full"
           />
-          <Grain className="opacity-35" />
         </div>
       </div>
 

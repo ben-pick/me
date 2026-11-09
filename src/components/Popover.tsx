@@ -28,9 +28,11 @@ import {
   type Tone,
   useStore,
 } from "../lib/store.ts";
+import { CompanyScene } from "./CompanyScene.tsx";
+import { LogoMerge } from "./LogoMerge.tsx";
 import { formatDate } from "./Logs.tsx";
 import { Markdown } from "./Markdown.tsx";
-import { Brackets, Chip, Grain } from "./ui.tsx";
+import { Brackets, Chip } from "./ui.tsx";
 
 /* ------------------------------------------------------------------ */
 /* Hash sync: `#company/kodo` opens that popover, closing clears it. */
@@ -185,6 +187,10 @@ const Monogram = ({ name }: { name: string }) => {
 
 const CompanyBody = ({ c, index }: { c: Company; index: number }) => (
   <>
+    <div className="relative mt-10 h-[200px] overflow-hidden bg-panel text-cream">
+      <CompanyScene slug={c.slug} />
+      <Brackets className="m-2" />
+    </div>
     <div className="flex items-start gap-4">
       <Monogram name={c.name} />
       <div className="flex min-w-0 flex-col gap-2">
@@ -222,17 +228,11 @@ const CompanyBody = ({ c, index }: { c: Company; index: number }) => (
 
 const ProjectBody = ({ p }: { p: Project }) => (
   <>
-    <div className="relative aspect-[16/8] overflow-hidden bg-[radial-gradient(ellipse_at_50%_45%,#262626_0%,#121212_70%)] p-3 text-cream">
+    <div className="relative mt-10 aspect-[16/8] overflow-hidden bg-panel p-3 text-cream">
+      <LogoMerge word={p.name} />
       <Brackets className="m-2" />
-      <Grain />
-      <span className="absolute top-4 left-5 text-[11px] uppercase text-soft">
+      <span className="pointer-events-none absolute top-4 left-5 text-[11px] uppercase text-soft">
         {p.code}
-      </span>
-      <span className="absolute right-5 bottom-4 text-[11px] uppercase text-soft">
-        [Hero image / video]
-      </span>
-      <span className="absolute inset-0 grid place-items-center font-display text-[56px] uppercase tracking-[-0.02em] opacity-90">
-        {p.name}
       </span>
     </div>
     <div className="flex items-baseline justify-between gap-4">
@@ -421,9 +421,7 @@ export const PopoverHost = () => {
       onOpenChange={(o) => !o && actions.closePopover()}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in">
-          <Grain className="opacity-40" />
-        </Dialog.Overlay>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
         {shown ? (
           <Dialog.Content
             key={popoverHash(shown.id)}

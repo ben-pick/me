@@ -59,9 +59,11 @@ the file name. Values in `[brackets]` are placeholders to fill in.
 - **Boot**: first visit per session plays a short terminal boot, then wipes away; the
   name drops in letter by letter and the brain's dots fly in. Skipped on repeat
   visits and with reduced motion (an inline script in the root decides before paint).
-- **Company previews**: each row has an animated preview that trails the cursor. Scenes
-  are shaded vector drawings (`src/brain/company-glyphs.ts`) rendered off-screen and
-  converted to the brain's square-dot halftone, with dot size following brightness.
+- **Company scenes**: each company's popover plays an animated scene. Scenes are shaded
+  vector drawings (`src/brain/company-glyphs.ts`) rendered off-screen and converted to
+  the brain's square-dot halftone, with dot size following brightness.
+- **Project hero**: three logos in dots gather and rearrange into the project's name
+  (`src/brain/logo-merge.ts`).
 - **Scroll reveals**: section rules draw across as they scroll in.
 
 

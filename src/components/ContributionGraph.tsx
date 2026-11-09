@@ -4,7 +4,6 @@ import { type Contributions, type Day, toWeeks } from "../lib/contributions.ts";
 import { cx } from "../lib/cx.ts";
 import { STATIC_BUILD } from "../lib/env.ts";
 import { useInView } from "../lib/hooks.ts";
-import { Grain } from "./ui.tsx";
 
 const USER = site.github.user;
 /** Dot size and brightness for GitHub's 0–4 levels, as a share of the cell. */
@@ -119,7 +118,6 @@ export const ContributionGraph = () => {
       aria-labelledby="activity"
       className="relative flex min-w-0 flex-col overflow-hidden bg-ink p-6 text-cream md:p-7"
     >
-      <Grain className="opacity-40" />
       <div className="relative mb-4 flex justify-between gap-3 text-[11px] uppercase text-soft">
         <h2 id="activity" className="m-0 font-mono text-[11px] font-normal">
           {site.sections.activity.title}

@@ -12,7 +12,7 @@ import { interestBySlug, site } from "../content/index.ts";
 import { cx } from "../lib/cx.ts";
 import { useReducedMotion } from "../lib/hooks.ts";
 import { actions, getState, useStore } from "../lib/store.ts";
-import { Brackets, Grain } from "./ui.tsx";
+import { Brackets } from "./ui.tsx";
 
 const asRegion = (s: string): Region =>
   ((REGIONS as ReadonlyArray<string>).find((r) => r === s) as Region) ??
@@ -208,7 +208,6 @@ export const BrainPanel = () => {
           ref={labels}
           className="pointer-events-none absolute inset-0 block size-full"
         />
-        <Grain className="opacity-35" />
         <div className="pointer-events-none absolute top-3 right-3.5 hidden gap-1 text-[10px] uppercase text-soft group-focus-visible:flex">
           ← → change · ↵ open
         </div>

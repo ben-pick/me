@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { site } from "../content/index.ts";
 import { copyEmail, EMAIL } from "../lib/store.ts";
-import { Grain, Kbd } from "./ui.tsx";
+import { Kbd } from "./ui.tsx";
 
 /** ⌘C copies the email while the pointer or focus is on this block. */
 export const Contact = () => {
@@ -38,7 +38,6 @@ export const Contact = () => {
       }}
       className="relative scroll-mt-6 flex flex-wrap items-end justify-between gap-7 overflow-hidden bg-ink px-6 py-12 text-cream md:px-10"
     >
-      <Grain className="opacity-50" />
       <p className="relative m-0 max-w-[600px] font-display text-[clamp(40px,6vw,56px)] uppercase leading-[0.9] tracking-[-0.02em]">
         {site.contact.headline}
       </p>

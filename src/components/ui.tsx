@@ -25,23 +25,6 @@ export const Chip = ({ children }: { children: ReactNode }) => (
   </span>
 );
 
-const GRAIN: CSSProperties = {
-  backgroundImage:
-    "repeating-radial-gradient(circle at 23% 41%, rgb(255 255 255 / .08) 0 1px, transparent 1px 2px), repeating-radial-gradient(circle at 71% 13%, rgb(0 0 0 / .22) 0 1px, transparent 1px 3px)",
-};
-
-/** Heavy film grain over dark media. */
-export const Grain = ({ className }: { className?: string }) => (
-  <span
-    aria-hidden="true"
-    style={GRAIN}
-    className={cx(
-      "pointer-events-none absolute inset-0 animate-grain motion-reduce:animate-none",
-      className,
-    )}
-  />
-);
-
 export const PAPER: CSSProperties = {
   backgroundImage:
     "repeating-radial-gradient(circle at 40% 30%, rgb(0 0 0 / .035) 0 1px, transparent 1px 3px)",

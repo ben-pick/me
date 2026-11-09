@@ -46,10 +46,7 @@ export const CompanyIndex = () => {
       <div
         ref={list}
         className="relative"
-        onPointerLeave={() => {
-          setActive(null);
-          actions.setPreview(null);
-        }}
+        onPointerLeave={() => setActive(null)}
         onBlur={(e) => {
           if (!list.current?.contains(e.relatedTarget as Node | null))
             setActive(null);
@@ -70,13 +67,9 @@ export const CompanyIndex = () => {
               key={c.slug}
               type="button"
               aria-haspopup="dialog"
-              onPointerEnter={(e) => {
-                activate(i, e.currentTarget);
-                if (e.pointerType === "mouse") actions.setPreview(c.slug);
-              }}
+              onPointerEnter={(e) => activate(i, e.currentTarget)}
               onFocus={(e) => activate(i, e.currentTarget)}
               onClick={(e) => {
-                actions.setPreview(null);
                 actions.openPopover(
                   { kind: "company", slug: c.slug },
                   {

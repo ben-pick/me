@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { content, site } from "../content/index.ts";
 import { actions } from "../lib/store.ts";
-import { Grain } from "./ui.tsx";
 
 const LINES = [
   `${site.name.first} ${site.name.last} — INDEX`.toUpperCase(),
@@ -64,7 +63,6 @@ export const Boot = () => {
       aria-hidden="true"
       className={`fixed inset-0 z-[90] flex flex-col justify-end bg-ink p-6 font-mono text-[12px] uppercase text-cream transition-[clip-path] duration-700 ease-out-expo [html[data-booted]_&]:hidden sm:p-10 ${phase === "leaving" ? "[clip-path:inset(0_0_100%_0)]" : "[clip-path:inset(0_0_0_0)]"}`}
     >
-      <Grain className="opacity-60" />
       <div className="relative flex flex-col gap-1.5">
         {LINES.slice(0, shown).map((l, i) => (
           <span

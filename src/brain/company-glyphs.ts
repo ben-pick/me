@@ -1,7 +1,7 @@
 /**
  * Company previews: small animated vector illustrations, drawn in white on
  * black into an offscreen canvas, then turned into the brain's square-dot
- * halftone by `CompanyPreview`. Drawing real shapes and gradients (rather
+ * halftone by `CompanyScene`. Drawing real shapes and gradients (rather
  * than placing dots by hand) gives shading, depth and fine detail. No text.
  *
  * Each scene draws around (0,0) in CSS px, within roughly ±125 × ±80.
