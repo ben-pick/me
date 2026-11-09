@@ -385,6 +385,9 @@ const Missing = () => (
   </>
 );
 
+const OVERLAY =
+  "fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in";
+
 const CloseButton = () => (
   <Dialog.Close
     aria-label="Close"
@@ -423,8 +426,8 @@ export const PopoverHost = () => {
   const mobile = useIsMobile();
   const [panel, setPanel] = useState<HTMLDivElement | null>(null);
   // The tour decides when a guided popover closes, and needs the page beside
-  // it to stay live, so it opens non-modal: no backdrop, focus trap or scroll
-  // lock. `shown` keeps this stable through the exit animation.
+  // it to stay live, so it opens non-modal: no focus trap or scroll lock.
+  // `shown` keeps this stable through the exit animation.
   const guided = (open ?? shown)?.guided === true;
   const inset = guided ? barHeight : 0;
   const placement = usePlacement(mobile ? null : shown, panel, inset);
@@ -442,7 +445,16 @@ export const PopoverHost = () => {
       onOpenChange={(o) => !o && !guided && actions.closePopover()}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
+        {/* Radix only renders its overlay for modal dialogs. */}
+        {guided ? (
+          <div
+            aria-hidden="true"
+            data-state={open ? "open" : "closed"}
+            className={OVERLAY}
+          />
+        ) : (
+          <Dialog.Overlay className={OVERLAY} />
+        )}
         {shown ? (
           <Dialog.Content
             key={popoverHash(shown.id)}
