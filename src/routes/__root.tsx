@@ -12,6 +12,7 @@ import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
 import { site } from "../content/index.ts";
 import { absoluteUrl } from "../lib/seo.ts";
+import overlayCss from "../overlay.css?url";
 import appCss from "../styles.css?url";
 
 const TITLE = site.seo.title;
@@ -52,6 +53,7 @@ export const Route = createRootRoute({
         href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@300;400;500&display=swap",
       },
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: overlayCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
   }),
@@ -87,9 +89,17 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
+      {/*
+        Radix's modal scroll lock sets `overflow: hidden` on <body> while a
+        popover or the palette is open. On phones (iOS Safari especially)
+        toggling it moves the page's scroll container, so the sticky nav is
+        laid out again and flickers: shown, gone, shown. The lock already
+        blocks touch scrolling outside the dialog, so small screens keep the
+        page's own overflow.
+      */}
       <body
         style={PAPER}
-        className="m-0 bg-cream font-mono text-[13px] text-ink antialiased"
+        className="m-0 bg-cream font-mono text-[13px] text-ink antialiased max-md:[&[data-scroll-locked]]:!overflow-visible"
       >
         <a
           href="#main"
