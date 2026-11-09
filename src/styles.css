@@ -109,6 +109,8 @@
     background: var(--color-cream);
     color: var(--color-ink);
     scroll-behavior: smooth;
+    /* Clears the sticky nav when jumping to a section. */
+    scroll-padding-top: 6rem;
     -webkit-tap-highlight-color: transparent;
   }
   ::selection {

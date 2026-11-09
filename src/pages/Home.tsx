@@ -35,10 +35,15 @@ const Letters = ({ word, offset }: { word: string; offset: number }) => (
 export function Home() {
   return (
     <div className="mx-auto flex max-w-[1216px] flex-col gap-16 px-4 pt-6 pb-16 sm:px-8">
-      <Nav />
+      <Nav>
+        <TourButton />
+      </Nav>
       <main id="main" className="flex flex-col gap-16">
         <header data-tour="hero" className="flex flex-col gap-6">
           <div className="flex flex-col gap-5">
+            <p className="m-0 text-[12px] uppercase">
+              {site.role} / {site.location}
+            </p>
             <div className="flex items-end justify-between gap-4 font-display text-[clamp(64px,12vw,176px)] leading-[0.86]">
               <h1 className="m-0 text-[length:inherit] font-[inherit] uppercase leading-[inherit] tracking-[-0.02em]">
                 <Letters word={site.name.first} offset={0} />
@@ -61,7 +66,6 @@ export function Home() {
                   {t}
                 </span>
               ))}
-              <TourButton />
             </div>
           </div>
         </header>

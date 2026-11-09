@@ -11,7 +11,7 @@ import { useReducedMotion } from "../lib/hooks.ts";
 import { actions, getState, useStore } from "../lib/store.ts";
 import { timeline, tourPlayer } from "../tour/player.ts";
 import { stateAt, type TourState } from "../tour/timeline.ts";
-import { Brackets, PAPER } from "./ui.tsx";
+import { PAPER } from "./ui.tsx";
 
 const sameView = (a: TourState, b: TourState) =>
   a.stopIndex === b.stopIndex &&
@@ -74,7 +74,11 @@ const TourSession = () => {
       `[data-tour="${view.target}"]`,
     );
     if (!element) return;
-    const room = window.innerHeight - (bar.current?.offsetHeight ?? 0);
+    const stickyNav = Number.parseFloat(
+      getComputedStyle(document.documentElement).scrollPaddingTop,
+    );
+    const room =
+      window.innerHeight - stickyNav - (bar.current?.offsetHeight ?? 0);
     element.focus({ preventScroll: true, focusVisible: true });
     element.scrollIntoView({
       block: element.offsetHeight > room ? "start" : "center",
@@ -239,19 +243,21 @@ export const TourButton = () => {
       ref={button}
       type="button"
       onClick={() => tourPlayer.start()}
+      aria-label="Take the audio tour"
       className={cx(
-        "group relative inline-flex min-h-7 items-center gap-2 border border-ink px-2 py-1 text-[11px] uppercase transition-colors duration-300 hover:bg-ink hover:text-cream focus-visible:outline-offset-2",
+        "flex min-h-11 items-center gap-2.5 border border-ink bg-ink px-3 font-mono text-[11px] uppercase whitespace-nowrap text-cream transition-colors duration-200 hover:bg-transparent hover:text-ink",
         running && "invisible",
       )}
     >
-      <Brackets className="-m-[3px] text-current opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
-      Take the tour
       <span
         aria-hidden="true"
-        className="transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-      >
-        ↗
+        className="size-0 border-y-[4.5px] border-l-[7px] border-y-transparent border-l-current"
+      />
+      <span>
+        <span className="hidden sm:inline">Audio </span>
+        Tour
       </span>
+      <span className="opacity-60">{formatTime(timeline.duration)}</span>
     </button>
   );
 };
