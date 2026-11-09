@@ -55,7 +55,7 @@ export const Nav = ({ children }: { children?: ReactNode }) => {
               onClick={() => actions.openPalette()}
               aria-label="Search the site"
               aria-keyshortcuts="Meta+K Control+K"
-              className="flex min-h-11 min-w-11 items-center justify-center border border-ink px-3 font-mono text-[11px] uppercase text-muted hover:bg-ink hover:text-cream lg:w-[260px] lg:justify-between"
+              className="flex min-h-11 min-w-11 items-center justify-center border border-ink px-3 font-mono text-[11px] uppercase text-muted transition-colors duration-200 hover:bg-ink/10 hover:text-ink lg:w-[260px] lg:justify-between"
             >
               <span className="flex items-center gap-2.5">
                 <SearchIcon />
