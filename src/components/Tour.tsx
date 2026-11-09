@@ -399,12 +399,6 @@ export const Tour = () => {
       // Land on the new stop and wait there, rather than carrying on mid-sentence.
       current.seek(destination);
       narration.current?.seek(destination);
-      current.pause();
-      narration.current?.pause();
-      playingRef.current = false;
-      setPlaying(false);
-      cancelAnimationFrame(raf.current);
-      raf.current = 0;
 
       const at = stateAt(line, destination);
       lastKey.current = stateKey(at);
@@ -413,9 +407,24 @@ export const Tour = () => {
       setSnapshot(at);
       setElapsed(destination);
 
-      if (destination >= line.duration) setElapsed(line.duration);
+      if (destination >= line.duration) {
+        current.pause();
+        narration.current?.pause();
+        playingRef.current = false;
+        setPlaying(false);
+        setElapsed(line.duration);
+        cancelAnimationFrame(raf.current);
+        return;
+      }
+      // Carry on from the new stop rather than making the viewer press Resume.
+      playingRef.current = true;
+      setPlaying(true);
+      void current.play();
+      narration.current?.play();
+      cancelAnimationFrame(raf.current);
+      raf.current = requestAnimationFrame(tick);
     },
-    [applyState],
+    [applyState, tick],
   );
 
   const toggle = useCallback(() => {
@@ -587,13 +596,11 @@ export const Tour = () => {
 
     window.addEventListener("wheel", onUser, { passive: true });
     window.addEventListener("touchstart", onUser, { passive: true });
-    window.addEventListener("pointerdown", onUser, { passive: true });
     window.addEventListener("keydown", onKey, { capture: true });
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("wheel", onUser);
       window.removeEventListener("touchstart", onUser);
-      window.removeEventListener("pointerdown", onUser);
       window.removeEventListener("keydown", onKey, { capture: true });
       window.removeEventListener("scroll", onScroll);
     };
