@@ -12,7 +12,6 @@ import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
 import { site } from "../content/index.ts";
 import { absoluteUrl } from "../lib/seo.ts";
-import overlayCss from "../overlay.css?url";
 import appCss from "../styles.css?url";
 
 const TITLE = site.seo.title;
@@ -53,7 +52,6 @@ export const Route = createRootRoute({
         href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@300;400;500&display=swap",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "stylesheet", href: overlayCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
   }),
