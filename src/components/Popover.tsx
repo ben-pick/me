@@ -192,7 +192,7 @@ const Monogram = ({ name }: { name: string }) => {
 
 const CompanyBody = ({ c, index }: { c: Company; index: number }) => (
   <>
-    <div className="relative mt-10 h-[200px] overflow-hidden bg-panel text-cream">
+    <div className="relative mt-10 overflow-hidden bg-panel text-cream">
       <CompanyScene slug={c.slug} />
       <Brackets className="m-2" />
     </div>

@@ -4,9 +4,13 @@
  * halftone by `CompanyScene`. Drawing real shapes and gradients (rather
  * than placing dots by hand) gives shading, depth and fine detail. No text.
  *
- * Each scene draws around (0,0) in CSS px, within roughly ±125 × ±80.
+ * Each scene draws around (0,0) in CSS px, composed to fill `SCENE_W` by
+ * `SCENE_H`: roughly ±195 × ±85.
  */
 export type SceneFn = (c: CanvasRenderingContext2D, t: number) => void;
+
+export const SCENE_W = 394;
+export const SCENE_H = 176;
 
 const TAU = Math.PI * 2;
 const ease = (x: number) =>
@@ -166,7 +170,7 @@ const pointsCoin = (
 };
 
 const KODO_LOOP = 6.6;
-const OFFER_GAP = 96;
+const OFFER_GAP = 104;
 const CARD_W = 76;
 const CARD_H = 112;
 
@@ -183,8 +187,8 @@ const kodo: SceneFn = (c, t) => {
   const selected =
     between(3.2, 3.55) * (1 - between(KODO_LOOP - 0.5, KODO_LOOP));
 
-  const first = Math.floor(position) - 2;
-  for (let k = first; k <= first + 4; k++) {
+  const first = Math.floor(position) - 3;
+  for (let k = first; k <= first + 6; k++) {
     const offer = ((k % 3) + 3) % 3;
     const x = (k - position) * OFFER_GAP;
     const near = 1 - Math.min(1, Math.abs(x) / OFFER_GAP);
@@ -281,17 +285,17 @@ const bank = (
 /** One auth core for four brands: requests fly in, get verified, return lit. */
 const commbankStaff: SceneFn = (c, t) => {
   const nodes = [
-    [-92, -48],
-    [92, -48],
-    [-92, 48],
-    [92, 48],
+    [-160, -46],
+    [160, -46],
+    [-160, 46],
+    [160, 46],
   ] as const;
   for (let k = 0; k < 3; k++) {
     const p = (t * 0.6 + k / 3) % 1;
     c.strokeStyle = gray(255, 0.6 * (1 - p));
     c.lineWidth = 2;
     c.beginPath();
-    c.arc(0, 0, 30 + p * 44, 0, TAU);
+    c.arc(0, 0, 30 + p * 54, 0, TAU);
     c.stroke();
   }
   nodes.forEach(([x, y], k) => {
@@ -349,9 +353,10 @@ const commbankStaff: SceneFn = (c, t) => {
 
 /** Candles, a lit moving-average line over an area fill, and volume. */
 const commbankSenior: SceneFn = (c, t) => {
-  const left = -122;
-  const right = 122;
+  const left = -197;
+  const right = 197;
   const step = 11;
+  const candles = 38;
   const scroll = t * 12;
   const offset = scroll % step;
   const base = Math.floor(scroll / step);
@@ -369,7 +374,7 @@ const commbankSenior: SceneFn = (c, t) => {
     c.stroke();
   }
   const pts: Array<[number, number]> = [];
-  for (let i = -1; i < 25; i++) {
+  for (let i = -1; i < candles; i++) {
     const k = base + i;
     let ma = 0;
     for (let j = 0; j < 6; j++) ma += price(k - j);
@@ -385,7 +390,7 @@ const commbankSenior: SceneFn = (c, t) => {
   c.lineTo(pts.at(-1)?.[0] ?? right, 40);
   c.closePath();
   c.fill();
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < candles; i++) {
     const k = base + i;
     const x = left + i * step - offset;
     const o = price(k - 0.6);
@@ -422,12 +427,17 @@ const commbankSenior: SceneFn = (c, t) => {
     else c.lineTo(x, y);
   });
   c.stroke();
-  const lastY = pts.at(-3)?.[1] ?? 0;
+  // The latest price rides the line at a fixed point near the right edge.
+  const liveX = right - 22;
+  const after = pts.findIndex(([x]) => x >= liveX);
+  const [ax, ay] = pts[after - 1] ?? [liveX, 0];
+  const [bx, by] = pts[after] ?? [liveX + 1, ay];
+  const lastY = ay + ((by - ay) * (liveX - ax)) / (bx - ax);
   const pulse = (t * 1.5) % 1;
-  glow(c, right - 22, lastY, 10 + pulse * 10, 255);
+  glow(c, liveX, lastY, 10 + pulse * 10, 255);
   c.fillStyle = gray(255);
   c.beginPath();
-  c.arc(right - 22, lastY, 3.5, 0, TAU);
+  c.arc(liveX, lastY, 3.5, 0, TAU);
   c.fill();
 };
 
@@ -499,7 +509,7 @@ const quantium: SceneFn = (c, t) => {
 
 /** A schoolhouse with a waving flag; a class lights up as the roll is called. */
 const schoolBytes: SceneFn = (c, t) => {
-  const bx = -70;
+  const bx = -128;
   c.fillStyle = shade(c, -40, 70, 210, 70);
   c.fillRect(bx - 48, -20, 96, 88);
   c.fillStyle = shade(c, -60, -20, 255, 170);
@@ -551,13 +561,13 @@ const schoolBytes: SceneFn = (c, t) => {
     );
   c.closePath();
   c.fill();
-  const cols = 5;
+  const cols = 10;
   const rows = 4;
-  const sweep = (t * 7) % (cols * rows + 8);
+  const sweep = (t * 12) % (cols * rows + 12);
   for (let r = 0; r < rows; r++) {
     for (let col = 0; col < cols; col++) {
       const i = r * cols + col;
-      const x = 18 + col * 24;
+      const x = -44 + col * 24.4;
       const y = -46 + r * 34;
       const on = clamp01(sweep - i);
       const absent = (r * 7 + col * 3) % 11 === 0;

@@ -1,10 +1,8 @@
 import { useEffect, useRef } from "react";
-import { COMPANY_GLYPHS } from "../brain/company-glyphs.ts";
+import { COMPANY_GLYPHS, SCENE_H, SCENE_W } from "../brain/company-glyphs.ts";
 import { createHalftone } from "../brain/halftone.ts";
 import { useReducedMotion } from "../lib/hooks.ts";
 
-const W = 268;
-const H = 176;
 const PITCH = 2.5;
 /** Far enough in for a scene's figures to have finished counting up. */
 const STILL_AT = 8;
@@ -18,7 +16,7 @@ export const CompanyScene = ({ slug }: { slug: string }) => {
     const scene = COMPANY_GLYPHS[slug];
     const el = canvas.current;
     const c = el?.getContext("2d");
-    const halftone = createHalftone(W, H, PITCH);
+    const halftone = createHalftone(SCENE_W, SCENE_H, PITCH);
     if (!scene || !el || !c || !halftone) return;
 
     let scale = 1;
@@ -44,7 +42,7 @@ export const CompanyScene = ({ slug }: { slug: string }) => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       el.width = Math.round(el.clientWidth * dpr);
       el.height = Math.round(el.clientHeight * dpr);
-      scale = el.clientHeight / H;
+      scale = el.clientWidth / SCENE_W;
       if (reduced) paint(STILL_AT);
     };
     resize();
@@ -64,5 +62,11 @@ export const CompanyScene = ({ slug }: { slug: string }) => {
     };
   }, [slug, reduced]);
 
-  return <canvas ref={canvas} className="block size-full" />;
+  return (
+    <canvas
+      ref={canvas}
+      style={{ aspectRatio: `${SCENE_W} / ${SCENE_H}` }}
+      className="block w-full"
+    />
+  );
 };
