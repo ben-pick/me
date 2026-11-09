@@ -68,8 +68,13 @@ export const CompanyIndex = () => {
               type="button"
               data-tour={c.slug}
               aria-haspopup="dialog"
-              onPointerEnter={(e) => activate(i, e.currentTarget)}
-              onFocus={(e) => activate(i, e.currentTarget)}
+              onPointerEnter={(e) => {
+                if (e.pointerType === "mouse") activate(i, e.currentTarget);
+              }}
+              onFocus={(e) => {
+                if (e.currentTarget.matches(":focus-visible"))
+                  activate(i, e.currentTarget);
+              }}
               onClick={(e) => {
                 actions.openPopover(
                   { kind: "company", slug: c.slug },
