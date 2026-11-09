@@ -16,6 +16,23 @@ describe("brain points", () => {
     }
   });
 
+  it("tucks the cerebellum under the cerebrum, behind the brainstem", () => {
+    const at = (region: number) => {
+      const out = { y: 0, z: 0, n: 0 };
+      brain.regions.forEach((r, i) => {
+        if (r !== region) return;
+        out.y += brain.positions[i * 3 + 1] ?? 0;
+        out.z += brain.positions[i * 3 + 2] ?? 0;
+        out.n++;
+      });
+      return { y: out.y / out.n, z: out.z / out.n };
+    };
+    const cerebellum = at(REGIONS.indexOf("bouldering"));
+    const stem = at(-1);
+    expect(cerebellum.z).toBeLessThan(stem.z);
+    expect(cerebellum.y).toBeLessThan(-0.4);
+  });
+
   it("turns an anchor to face the camera", () => {
     for (const a of brain.anchors) {
       const { yaw, pitch } = facing(a.at, 0);

@@ -77,25 +77,60 @@ export const buildBrain = (scale = 1): Brain => {
 
   cerebrum(Math.round(4200 * scale), 1);
   cerebrum(Math.round(1200 * scale), 0.86);
-  fib(Math.round(1200 * scale), (dx, dy, dz) => {
-    const rr = 1 + 0.07 * Math.sin(dy * 34);
+  // Lowest point of the cerebrum above (x, z): the tentorium over the cerebellum.
+  const underside = (x: number, z: number) => {
+    const dx = (Math.abs(x) - 0.05) / 0.82;
+    const dz = z / 1.05;
+    const r = dx * dx + dz * dz;
+    return r < 1 ? 0.12 - 0.62 * Math.sqrt(1 - r) : Number.POSITIVE_INFINITY;
+  };
+  // Cerebellum: under the occipital lobes, behind the pons and medulla. Two
+  // hemispheres split by a midline notch (vermis), with fine parallel folia.
+  fib(Math.round(1700 * scale), (dx, dy, dz) => {
+    const notch = 0.16 * Math.exp(-((dx / 0.14) ** 2)) * Math.abs(dz);
+    const rr = (1 + 0.05 * Math.sin(dy * 38)) * (1 - notch);
+    const x = dx * 0.62 * rr;
+    const z = dz * 0.33 * rr - 0.66;
+    const y = dy * 0.25 * rr - 0.52;
+    const limit = underside(x, z) - 0.07;
+    // Points above the tentorium settle into a soft band, not a hard line.
     pts.push({
-      x: dx * 0.52 * rr,
-      y: dy * 0.26 * rr - 0.48,
-      z: dz * 0.32 * rr - 0.7,
+      x,
+      y: y > limit ? limit - 0.09 * Math.abs(Math.sin(dx * 91 + dz * 53)) : y,
+      z,
       r: 0,
     });
   });
-  const stem = Math.round(260 * scale);
+  // Brainstem: midbrain, forward-bulging pons, tapering medulla, leaning back
+  // as it descends.
+  const stem = Math.round(1000 * scale);
   for (let i = 0; i < stem; i++) {
     const t = i / stem;
     const a = i * 2.399963;
+    const bulge = 0.055 * Math.exp(-(((t - 0.33) / 0.13) ** 2));
+    const radius = 0.14 - 0.06 * t + bulge;
     pts.push({
-      x: Math.cos(a) * 0.12,
-      y: -0.42 - t * 0.6,
-      z: Math.sin(a) * 0.12 - 0.32,
+      x: Math.cos(a) * radius,
+      y: -0.38 - t * 0.7,
+      z: Math.sin(a) * radius - 0.2 - t * 0.2 + bulge * 0.8,
       r: -1,
     });
+  }
+  // Cerebellar peduncles: the paired bundles joining the back of the brainstem
+  // to each cerebellar hemisphere.
+  for (const side of [-1, 1]) {
+    const n = Math.round(170 * scale);
+    for (let i = 0; i < n; i++) {
+      const t = i / n;
+      const a = i * 2.399963;
+      const radius = 0.11 - 0.02 * t;
+      pts.push({
+        x: side * (0.08 + t * 0.28) + Math.cos(a) * radius,
+        y: -0.52 - t * 0.04 + Math.sin(a) * radius,
+        z: -0.34 - t * 0.2,
+        r: -1,
+      });
+    }
   }
 
   const positions = new Float32Array(pts.length * 3);
