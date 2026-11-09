@@ -88,7 +88,6 @@ export const SiteSchema = Schema.Struct({
   tags: Strings,
   /** The production origin, used for canonical URLs and the sitemap. */
   url: Schema.String,
-  intro: Schema.String,
   seo: Schema.Struct({
     title: Schema.String,
     description: Schema.String,

@@ -15,7 +15,6 @@ Values in `[square brackets]` are placeholders still to fill in.
 | `coordinates` | Boot screen |
 | `tags` | The outlined chips under your name |
 | `url` | The production address, used for canonical URLs, the sitemap and link previews |
-| `intro` | The short bio under your name |
 | `seo.title`, `seo.description`, `seo.logsDescription` | Browser tab, search results, link previews (`logsDescription` is for `/logs`) |
 | `contact.headline` | "Let's build something." |
 | `contact.email`, `contact.github`, `contact.linkedin` | Contact band, ⌘K palette, ⌥2 / ⌥4 |
