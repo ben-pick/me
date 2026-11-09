@@ -41,3 +41,5 @@ companies, projects and interests. Logs sort by `date`, newest first.
 - **A project**: same in `projects/`. With only one project the card goes full width.
 - **A log**: add `logs/YYYY-MM-DD-some-slug.md`. Add `project: redacted` to file it
   under the [REDACTED] build log.
+
+The LinkedIn banner (`src/banner`) renders `site.json`, the companies and the featured project. `pnpm deploy` regenerates `design/linkedin-banner.png`, and `pnpm test` fails if it falls behind. LinkedIn has no upload API, so re-upload the PNG by hand when it changes.
