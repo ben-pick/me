@@ -575,7 +575,9 @@ export const Tour = () => {
           {/* Swallows clicks on the page; the tour owns the pointer until Exit. */}
           <div
             aria-hidden="true"
-            className="fixed inset-0 z-30 cursor-default"
+            // Above a modal's backdrop (z-40) so clicking outside cannot close it,
+            // but below the modal itself (z-50) and the controls (z-65).
+            className="pointer-events-auto fixed inset-0 z-[45] cursor-default"
           />
         </>
       ) : null}
@@ -602,7 +604,9 @@ export const Tour = () => {
         <section
           data-tour-ui
           aria-label="Guided tour"
-          className="fixed inset-x-0 bottom-0 z-[65] px-3 pb-[max(12px,env(safe-area-inset-bottom))] sm:px-6"
+          // The page sets pointer-events: none while a modal is open, so the
+          // controls have to opt back in to stay clickable.
+          className="pointer-events-auto fixed inset-x-0 bottom-0 z-[65] px-3 pb-[max(12px,env(safe-area-inset-bottom))] sm:px-6"
         >
           <div className="relative mx-auto flex w-full max-w-[1216px] flex-col gap-3 border border-ink bg-cream p-3.5 text-ink sm:p-4">
             <Brackets className="-m-[5px] text-ink/40" />
