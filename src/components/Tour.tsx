@@ -1,7 +1,6 @@
 import tourAssets from "virtual:tour-assets";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { projectBySlug, tour } from "../content/index.ts";
-import { cx } from "../lib/cx.ts";
+import { tour } from "../content/index.ts";
 import { useReducedMotion } from "../lib/hooks.ts";
 import { actions, anchorFrom, getState } from "../lib/store.ts";
 import { focusBrainRegion } from "../tour/brain.ts";
@@ -20,13 +19,6 @@ import {
   type TourState,
 } from "../tour/timeline.ts";
 import { Brackets } from "./ui.tsx";
-
-interface Rect {
-  readonly top: number;
-  readonly left: number;
-  readonly width: number;
-  readonly height: number;
-}
 
 const parseTiming = (value: unknown): Timing | null => {
   if (typeof value !== "object" || value === null) return null;
@@ -94,11 +86,6 @@ const targetElement = (name: string): HTMLElement | null => {
   return document.querySelector<HTMLElement>(`[data-tour="${escaped}"]`);
 };
 
-const dialogElement = (): HTMLElement | null =>
-  typeof document === "undefined"
-    ? null
-    : document.querySelector<HTMLElement>("[data-tour-dialog]");
-
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
   (target.isContentEditable ||
@@ -129,7 +116,7 @@ export const Tour = () => {
   const [playing, setPlaying] = useState(false);
   const [snapshot, setSnapshot] = useState<TourState | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  const [rect, setRect] = useState<Rect | null>(null);
+  const hovered = useRef<HTMLElement | null>(null);
 
   const timeline = useRef<Timeline | null>(null);
   const timing = useRef<Timing | null>(null);
@@ -146,6 +133,36 @@ export const Tour = () => {
   const programmaticUntil = useRef(0);
   const initialInterest = useRef("bouldering");
   const startButton = useRef<HTMLButtonElement>(null);
+
+  /**
+   * Use the page's own hover and focus behaviour for the current target, rather
+   * than drawing a highlight on top of it.
+   */
+  const enter = useCallback((element: HTMLElement | null) => {
+    const previous = hovered.current;
+    if (previous === element) return;
+    if (previous) {
+      previous.dispatchEvent(
+        new PointerEvent("pointerout", { bubbles: true, pointerType: "mouse" }),
+      );
+      previous.blur();
+    }
+    hovered.current = element;
+    if (!element) return;
+    const box = element.getBoundingClientRect();
+    const at = {
+      bubbles: true,
+      cancelable: true,
+      pointerType: "mouse",
+      clientX: box.left + box.width / 2,
+      clientY: box.top + box.height / 2,
+    };
+    element.dispatchEvent(new PointerEvent("pointerover", at));
+    element.dispatchEvent(new PointerEvent("pointermove", at));
+    if (element.tabIndex >= 0 || element.matches("a, button, [tabindex]")) {
+      element.focus({ preventScroll: true });
+    }
+  }, []);
 
   /**
    * Scroll a target into the space above the control bar. A smooth scroll can
@@ -210,10 +227,11 @@ export const Tour = () => {
       if (scrollKey.current !== key) {
         scrollKey.current = key;
         const element = targetElement(state.target);
+        enter(element);
         if (element) reveal(element);
       }
     },
-    [reveal],
+    [enter, reveal],
   );
 
   const syncAt = useCallback(
@@ -293,7 +311,6 @@ export const Tour = () => {
     setRunning(true);
     setPlaying(true);
     setElapsed(0);
-    setRect(null);
 
     const first = stateAt(line, 0);
     applyState(first);
@@ -363,7 +380,6 @@ export const Tour = () => {
     setPlaying(false);
     setSnapshot(null);
     snapshotRef.current = null;
-    setRect(null);
     setElapsed(0);
     lastKey.current = "";
     scrollKey.current = "";
@@ -468,103 +484,36 @@ export const Tour = () => {
     };
   }, [syncAt]);
 
-  /* Measure the spotlight after the target or dialog has rendered. */
-  const open = snapshot?.open ?? null;
-  const target = snapshot?.target ?? "";
-  useEffect(() => {
-    if (!running || !snapshot) {
-      setRect(null);
-      return;
-    }
-
-    let frame = 0;
-    let timer = 0;
-    let resize: ResizeObserver | null = null;
-    let watched: HTMLElement | null = null;
-
-    // Leave room for the control bar, so the target is never hidden behind it.
-    const bar = () =>
-      document.querySelector("[data-tour-ui]")?.getBoundingClientRect();
-
-    const measure = () => {
-      const element = open ? dialogElement() : targetElement(target);
-      if (!element) {
-        setRect(null);
-        return;
-      }
-      const box = element.getBoundingClientRect();
-      if (box.width <= 0 || box.height <= 0) {
-        setRect(null);
-        return;
-      }
-      const room = bar();
-      const bottom = room ? Math.min(box.bottom, room.top - 12) : box.bottom;
-      setRect({
-        top: box.top,
-        left: box.left,
-        width: box.width,
-        height: Math.max(0, bottom - box.top),
-      });
-      if (watched !== element && typeof ResizeObserver !== "undefined") {
-        resize?.disconnect();
-        watched = element;
-        resize = new ResizeObserver(measure);
-        resize.observe(element);
-      }
-    };
-
-    frame = requestAnimationFrame(() => {
-      measure();
-      // The dialog pop-in is 200ms; measure once it has settled too.
-      timer = window.setTimeout(measure, 260);
-    });
-
-    const onViewport = () => measure();
-    window.addEventListener("scroll", onViewport, { passive: true });
-    window.addEventListener("resize", onViewport, { passive: true });
-    return () => {
-      cancelAnimationFrame(frame);
-      clearTimeout(timer);
-      resize?.disconnect();
-      window.removeEventListener("scroll", onViewport);
-      window.removeEventListener("resize", onViewport);
-    };
-  }, [running, snapshot, open, target]);
-
-  /* Reserve room below the page so the last section can clear the control bar. */
-  useEffect(() => {
-    if (!running) return;
-    const spacer = document.createElement("div");
-    spacer.setAttribute("aria-hidden", "true");
-    spacer.style.cssText = "height:0;width:1px;pointer-events:none";
-    document.body.appendChild(spacer);
-    let timer = 0;
-    const size = () => {
-      const bar = document
-        .querySelector("[data-tour-ui]")
-        ?.getBoundingClientRect();
-      spacer.style.height = bar ? `${Math.round(bar.height + 48)}px` : "0px";
-    };
-    timer = window.setTimeout(size, 300);
-    window.addEventListener("resize", size);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", size);
-      spacer.remove();
-    };
-  }, [running]);
-
-  /* Any real interaction pauses; our own smooth scrolling is ignored. */
+  /* Locked in until Exit: the page cannot be scrolled, clicked or typed into. */
   useEffect(() => {
     if (!running) return;
 
     const inTourUi = (element: EventTarget | null) =>
       element instanceof Element && element.closest("[data-tour-ui]") !== null;
 
-    const onUser = (event: Event) => {
+    const onScrollInput = (event: Event) => {
       if (inTourUi(event.target)) return;
-      pauseTour();
+      event.preventDefault();
+      event.stopPropagation();
     };
+
+    const onPointer = (event: Event) => {
+      if (inTourUi(event.target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    const scrollKeys = new Set([
+      " ",
+      "PageUp",
+      "PageDown",
+      "Home",
+      "End",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+    ]);
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -574,37 +523,30 @@ export const Tour = () => {
         return;
       }
       if (inTourUi(event.target)) return;
-      pauseTour();
-      // Type-to-search belongs to the site; while the tour is running, a
-      // printable key only means "I want to drive now".
-      if (
-        !isTyping(event.target) &&
-        !event.metaKey &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        event.key.length === 1 &&
-        /\S/.test(event.key)
-      ) {
+      if (scrollKeys.has(event.key) || isTyping(event.target)) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      // Type-to-search belongs to the site, not to the tour.
+      if (event.key.length === 1 && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
         event.stopPropagation();
       }
     };
 
-    const onScroll = () => {
-      if (performance.now() < programmaticUntil.current) return;
-      pauseTour();
-    };
-
-    window.addEventListener("wheel", onUser, { passive: true });
-    window.addEventListener("touchstart", onUser, { passive: true });
+    // A plain wheel/touch event whose target is the page: block it, don't pause.
+    window.addEventListener("wheel", onScrollInput, { passive: false });
+    window.addEventListener("touchmove", onScrollInput, { passive: false });
+    window.addEventListener("pointerdown", onPointer, { capture: true });
     window.addEventListener("keydown", onKey, { capture: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("wheel", onUser);
-      window.removeEventListener("touchstart", onUser);
+      window.removeEventListener("wheel", onScrollInput);
+      window.removeEventListener("touchmove", onScrollInput);
+      window.removeEventListener("pointerdown", onPointer, { capture: true });
       window.removeEventListener("keydown", onKey, { capture: true });
-      window.removeEventListener("scroll", onScroll);
     };
-  }, [running, pauseTour, exitTour]);
+  }, [running, exitTour]);
 
   /* Do not leave a clock running if the page navigates away. */
   useEffect(
@@ -626,30 +568,15 @@ export const Tour = () => {
     duration > 0
       ? Math.round((Math.min(elapsed, duration) / duration) * 100)
       : Math.round((snapshot?.progress ?? 0) * 100);
-  const featured = snapshot ? projectBySlug(snapshot.target)?.featured : false;
-  const tone =
-    snapshot?.open || snapshot?.target === "contact" || featured
-      ? "text-cream"
-      : "text-ink";
-
   return (
     <>
       {running ? (
         <>
-          {rect ? (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none fixed z-[55]"
-              style={{
-                top: rect.top,
-                left: rect.left,
-                width: rect.width,
-                height: rect.height,
-              }}
-            >
-              <Brackets className={cx("-m-2", tone)} />
-            </div>
-          ) : null}
+          {/* Swallows clicks on the page; the tour owns the pointer until Exit. */}
+          <div
+            aria-hidden="true"
+            className="fixed inset-0 z-30 cursor-default"
+          />
         </>
       ) : null}
 
