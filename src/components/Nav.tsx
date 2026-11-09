@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { site } from "../content/index.ts";
-import { actions } from "../lib/store.ts";
+import { actions, useStore } from "../lib/store.ts";
 import { Kbd, PAPER } from "./ui.tsx";
 
 const NAV = [
@@ -28,10 +28,13 @@ const SearchIcon = () => (
 export const Nav = ({ children }: { children?: ReactNode }) => {
   // Every page renders the nav, inside the boundary that hydrates last.
   useEffect(() => actions.markPageHydrated(), []);
+  // Over a dialog's overlay the nav dims itself (see overlay.css).
+  const dimmed = useStore((s) => s.popover !== null || s.palette.open);
   return (
     <nav
       style={PAPER}
-      className="sticky top-0 z-30 -mx-4 -mt-3 bg-cream px-4 pt-3 sm:-mx-8 sm:px-8"
+      data-dimmed={dimmed || undefined}
+      className="nav-dim sticky top-0 z-30 -mx-4 -mt-3 bg-cream px-4 pt-3 sm:-mx-8 sm:px-8"
     >
       <div className="flex items-center justify-between gap-4 border-ink border-b pb-4 text-[12px] uppercase">
         <Link to="/" className="no-underline">
