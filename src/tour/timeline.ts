@@ -26,6 +26,12 @@ export interface TimingWord {
 
 export interface Timing {
   readonly duration: number;
+  /** Exact span of each stop in the recording, written by the build script. */
+  readonly stops?: ReadonlyArray<{
+    readonly id: string;
+    readonly start: number;
+    readonly end: number;
+  }>;
   readonly words: ReadonlyArray<TimingWord>;
 }
 
@@ -103,8 +109,13 @@ interface Preparation {
   readonly coverage: number;
 }
 
-/** How far ahead a word may be found, so a dropped word can't skip whole stops. */
-const LOOKAHEAD = 12;
+/**
+ * Aligns a stop's words to the recording's, in order. The search only looks a
+ * few words ahead: the recording follows the script closely, so a distant match
+ * means a dropped word, not a better fit. Looking further would let one stop
+ * run into the next.
+ */
+const LOOKAHEAD = 4;
 
 const align = (
   target: ReadonlyArray<Token>,
@@ -288,6 +299,54 @@ export const buildTimeline = (
     timing.words.length > 0 &&
     timing.duration > 0;
   const words = timed ? (timing?.words ?? []) : [];
+
+  // When the recording's own stop boundaries are known, use them: they cannot
+  // drift, and whisper's word spellings stop mattering.
+  const explicit = timing?.stops;
+  if (timed && explicit && explicit.length === stops.length) {
+    const timelineStops: TimelineStop[] = stops.map((stop, index) => ({
+      id: stop.id,
+      target: stop.target,
+      open: stop.open ?? null,
+      text: stop.text,
+      start: explicit[index]?.start ?? 0,
+      end: explicit[index]?.end ?? 0,
+      index,
+      coverage: 1,
+    }));
+    const beats: TimelineBeat[] = [];
+    stops.forEach((stop, stopIndex) => {
+      const span = explicit[stopIndex];
+      if (!span || !stop.beats) return;
+      const inStop = words.filter(
+        (word) => word.start >= span.start && word.start <= span.end,
+      );
+      stop.beats?.forEach((beat, index) => {
+        const phrase = tokenize(beat.on).map((token) => token.norm);
+        const found = findPhrase(
+          inStop.map((word) => normalize(word.word)),
+          phrase,
+        );
+        const foundWord = found >= 0 ? inStop[found] : undefined;
+        const fraction = (index + 1) / ((stop.beats?.length ?? 1) + 1);
+        beats.push({
+          stopId: stop.id,
+          stopIndex,
+          at: foundWord
+            ? foundWord.start
+            : span.start + fraction * (span.end - span.start),
+          target: beat.target ?? null,
+          region: beat.region ?? null,
+        });
+      });
+    });
+    return {
+      stops: timelineStops,
+      beats: spaceBeats(beats, timelineStops),
+      duration: Math.max(timing?.duration ?? 0, timelineStops.at(-1)?.end ?? 0),
+      timed: true,
+    };
+  }
   const prepared = timed
     ? prepare(stops, timing as Timing).prepared
     : estimate(stops);
@@ -335,7 +394,19 @@ export const buildTimeline = (
   });
   beats.sort((a, b) => a.stopIndex - b.stopIndex || a.at - b.at);
 
-  // Two beats landing together would swallow each other, so give each one room.
+  return {
+    stops: timelineStops,
+    beats: spaceBeats(beats, timelineStops),
+    duration,
+    timed,
+  };
+};
+
+/** Two beats landing together would swallow each other, so give each one room. */
+const spaceBeats = (
+  beats: ReadonlyArray<TimelineBeat>,
+  timelineStops: ReadonlyArray<TimelineStop>,
+): TimelineBeat[] => {
   const spaced: TimelineBeat[] = [];
   for (const beat of beats) {
     const previous = spaced[spaced.length - 1];
@@ -351,13 +422,7 @@ export const buildTimeline = (
       at: Math.min(Math.max(beat.at, earliest), latest),
     });
   }
-
-  return {
-    stops: timelineStops,
-    beats: spaced,
-    duration,
-    timed,
-  };
+  return spaced;
 };
 
 const emptyState = (): TourState => ({
