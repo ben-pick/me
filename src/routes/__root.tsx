@@ -11,7 +11,6 @@ import { PopoverHost } from "../components/Popover.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
 import { site } from "../content/index.ts";
-import { useScrollLockKeys } from "../lib/scroll-lock.ts";
 import { absoluteUrl } from "../lib/seo.ts";
 import overlayCss from "../overlay.css?url";
 import appCss from "../styles.css?url";
@@ -72,7 +71,6 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  useScrollLockKeys();
   return (
     <RootDocument>
       <Outlet />
@@ -93,17 +91,15 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       {/*
         Radix's modal scroll lock sets `overflow: hidden` on <body> while a
-        popover or the palette is open, plus a margin standing in for the
-        scrollbar it hides. Toggling those moves the page's scroll container
-        and re-lays out the page, which made the sticky nav flicker (shown,
-        gone, shown) in Safari and changed the layout on every open and close.
-        The lock already blocks wheel and touch scrolling outside the dialog,
-        and focus stays inside it, so the page keeps its own overflow and
-        scrollbar and nothing moves.
+        popover or the palette is open. On phones (iOS Safari especially)
+        toggling it moves the page's scroll container, so the sticky nav is
+        laid out again and flickers: shown, gone, shown. The lock already
+        blocks touch scrolling outside the dialog, so small screens keep the
+        page's own overflow.
       */}
       <body
         style={PAPER}
-        className="m-0 bg-cream font-mono text-[13px] text-ink antialiased [&[data-scroll-locked]]:!mr-0 [&[data-scroll-locked]]:!overflow-visible"
+        className="m-0 bg-cream font-mono text-[13px] text-ink antialiased max-md:[&[data-scroll-locked]]:!overflow-visible"
       >
         <a
           href="#main"
