@@ -385,8 +385,8 @@ const Missing = () => (
   </>
 );
 
-const OVERLAY =
-  "fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in";
+/** Tint, blur and fade live in overlay.css. */
+const OVERLAY = "overlay fixed inset-0 z-40";
 
 const CloseButton = () => (
   <Dialog.Close

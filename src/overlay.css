@@ -1,0 +1,40 @@
+/*
+ * The dimmed, blurred backdrop behind popovers and the palette.
+ *
+ * It fades by animating its tint and blur, never its opacity: Safari drops a
+ * backdrop-filter while the element's opacity animates, so the page behind
+ * (the sticky nav most visibly) flashed sharp, blurred, sharp. Holding the
+ * filter at blur(0) at the ends keeps it composited the whole way through.
+ *
+ * Kept out of styles.css, which the LinkedIn banner fingerprints.
+ */
+.overlay {
+  background-color: color-mix(in srgb, var(--color-panel) 45%, transparent);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.overlay[data-state="open"] {
+  animation: overlay-in 180ms ease-out both;
+}
+.overlay[data-state="closed"] {
+  animation: overlay-out 160ms ease-in both;
+}
+@keyframes overlay-in {
+  from {
+    background-color: transparent;
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
+  }
+}
+@keyframes overlay-out {
+  to {
+    background-color: transparent;
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation-duration: 1ms !important;
+  }
+}

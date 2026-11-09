@@ -24,18 +24,14 @@ const SearchIcon = () => (
   </svg>
 );
 
-/**
- * The page's actions stay reachable, so it sticks to the top while scrolling.
- * Its own compositor layer keeps mobile Safari from repainting it (a flash)
- * while a dialog's blurred overlay fades in over it.
- */
+/** The page's actions stay reachable, so it sticks to the top while scrolling. */
 export const Nav = ({ children }: { children?: ReactNode }) => {
   // Every page renders the nav, inside the boundary that hydrates last.
   useEffect(() => actions.markPageHydrated(), []);
   return (
     <nav
       style={PAPER}
-      className="sticky top-0 z-30 -mx-4 -mt-3 [transform:translateZ(0)] bg-cream px-4 pt-3 sm:-mx-8 sm:px-8"
+      className="sticky top-0 z-30 -mx-4 -mt-3 bg-cream px-4 pt-3 sm:-mx-8 sm:px-8"
     >
       <div className="flex items-center justify-between gap-4 border-ink border-b pb-4 text-[12px] uppercase">
         <Link to="/" className="no-underline">

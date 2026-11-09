@@ -277,7 +277,7 @@ export const CommandPalette = () => {
       onOpenChange={(o) => (o ? actions.openPalette() : actions.closePalette())}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
+        <Dialog.Overlay className="overlay fixed inset-0 z-40" />
         <Dialog.Content
           onKeyDown={onKeyDown}
           onOpenAutoFocus={(e) => {
