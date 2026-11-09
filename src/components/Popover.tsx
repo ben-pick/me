@@ -30,7 +30,7 @@ import {
 } from "../lib/store.ts";
 import { CompanyScene } from "./CompanyScene.tsx";
 import { LogoMerge } from "./LogoMerge.tsx";
-import { formatDate } from "./Logs.tsx";
+import { entryCount, formatDate } from "./Logs.tsx";
 import { Markdown } from "./Markdown.tsx";
 import { Brackets, Chip } from "./ui.tsx";
 
@@ -39,7 +39,11 @@ import { Brackets, Chip } from "./ui.tsx";
 /* ------------------------------------------------------------------ */
 
 const usePopoverHash = (current: OpenPopover | null) => {
+  const ready = useStore((s) => s.pageHydrated);
+  // Opening a dialog marks the rest of the page aria-hidden, which must wait
+  // until React has finished hydrating that page.
   useEffect(() => {
+    if (!ready) return;
     const fromHash = () => {
       const id = parsePopoverHash(window.location.hash);
       if (id) actions.openPopover(id);
@@ -47,15 +51,16 @@ const usePopoverHash = (current: OpenPopover | null) => {
     fromHash();
     window.addEventListener("hashchange", fromHash);
     return () => window.removeEventListener("hashchange", fromHash);
-  }, []);
+  }, [ready]);
 
   const hash = current ? popoverHash(current.id) : null;
   useEffect(() => {
+    if (!ready) return;
     const { pathname, search, hash: now } = window.location;
     if (hash && now !== hash) history.replaceState(history.state, "", hash);
     if (!hash && parsePopoverHash(now))
       history.replaceState(history.state, "", pathname + search);
-  }, [hash]);
+  }, [hash, ready]);
 };
 
 /* ----------------------------------------------- */
@@ -273,7 +278,7 @@ const BuildLog = ({ slug }: { slug: string }) => {
     <div>
       <div className="mb-1 flex justify-between text-[11px] uppercase opacity-60">
         <span>Build log</span>
-        <span>{logs.length} entries</span>
+        <span>{entryCount(logs.length)}</span>
       </div>
       <ol className="m-0 list-none p-0">
         {logs.map((l) => (

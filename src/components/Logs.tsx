@@ -2,6 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { content, projectBySlug, site } from "../content/index.ts";
 import { Kbd } from "./ui.tsx";
 
+/** "1 entry", "3 entries". */
+export const entryCount = (n: number) =>
+  `${n} ${n === 1 ? "entry" : "entries"}`;
+
 export const formatDate = (iso: string) =>
   new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-AU", {
     day: "2-digit",

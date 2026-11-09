@@ -7,7 +7,7 @@ import {
 } from "../content/index.ts";
 import { cx } from "../lib/cx.ts";
 import { actions, anchorFrom } from "../lib/store.ts";
-import { formatDate } from "./Logs.tsx";
+import { entryCount, formatDate } from "./Logs.tsx";
 import { Brackets, Chip, SectionHeader } from "./ui.tsx";
 
 /**
@@ -85,7 +85,7 @@ const Card = ({ p, wide }: { p: Project; wide: boolean }) => {
         <span className="flex flex-col">
           <span className="mb-1 flex justify-between text-[11px] uppercase opacity-60">
             <span>Build log</span>
-            <span>{logs.length} entries</span>
+            <span>{entryCount(logs.length)}</span>
           </span>
           {logs.slice(0, 4).map((l, i) => (
             <span

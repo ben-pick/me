@@ -5,7 +5,7 @@ detail: Cloud / Security
 role: Software Developer Intern
 start: Mar 2019
 end: Mar 2020
-highlight: Cloud / Security · IBM Verify Wear OS app · 100K+ downloads
+highlight: IBM Verify Wear OS app · 100K+ downloads
 url: https://www.ibm.com/verify
 stack: [Kotlin, Wear OS, Gatling, TypeScript]
 ---

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { formatDate } from "../components/Logs.tsx";
+import { entryCount, formatDate } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { SectionHeader } from "../components/ui.tsx";
 import { content, site } from "../content/index.ts";
@@ -11,7 +11,7 @@ export function LogsIndex() {
       <main id="main">
         <SectionHeader
           title={site.sections.logs.title}
-          caption={`${content.logs.length} entries`}
+          caption={entryCount(content.logs.length)}
         />
         <ul className="m-0 list-none border-ink border-t p-0">
           {content.logs.map((p, i) => (

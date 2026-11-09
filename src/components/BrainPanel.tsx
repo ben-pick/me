@@ -46,7 +46,8 @@ export const BrainPanel = () => {
   const selected = asRegion(useStore((s) => s.interest));
   const hovered = useStore((s) => s.hoverInterest);
   const booted = useStore((s) => s.booted);
-  const shown = interestBySlug(hovered ?? selected);
+  const active = hovered ? asRegion(hovered) : selected;
+  const shown = interestBySlug(active);
 
   // Still frame: drawn on mount and whenever the selection changes.
   useEffect(() => {
@@ -65,9 +66,9 @@ export const BrainPanel = () => {
       const sctx = s.getContext("2d");
       const lctx = l.getContext("2d");
       if (!sctx || !lctx) return;
-      drawStill(sctx, brain, 0.9, -0.22, w, h, dpr, selected);
+      drawStill(sctx, brain, 0.9, -0.22, w, h, dpr, active);
       const lv = Object.fromEntries(
-        REGIONS.map((r) => [r, r === selected ? 1 : 0]),
+        REGIONS.map((r) => [r, r === active ? 1 : 0]),
       ) as Record<Region, number>;
       stillAnchors.current = drawLabels(
         lctx,
@@ -86,7 +87,7 @@ export const BrainPanel = () => {
     const ro = new ResizeObserver(paint);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [selected, live]);
+  }, [active, live]);
 
   // Lazy-load the WebGL scene when the panel approaches the viewport.
   useEffect(() => {
@@ -129,6 +130,11 @@ export const BrainPanel = () => {
   useEffect(() => {
     scene.current?.focus(selected);
   }, [selected]);
+
+  // Hovering a region, here or in the list, shows it as if selected.
+  useEffect(() => {
+    scene.current?.preview(hovered ? asRegion(hovered) : null);
+  }, [hovered]);
 
   const cycle = (dir: 1 | -1) => {
     const i = REGIONS.indexOf(selected);

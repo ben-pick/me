@@ -58,35 +58,7 @@ const glow = (
   c.fill();
 };
 
-/* ------------------------------------------------------------------ Thanks */
-
-const giftBox = (
-  c: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  s: number,
-  t: number,
-) => {
-  c.save();
-  c.translate(x, y);
-  c.scale(s, s);
-  const lift = Math.max(0, Math.sin(t * 2.2)) ** 4 * 5;
-  c.fillStyle = shade(c, -4, 22, 210, 90);
-  c.fillRect(-18, -2, 36, 24);
-  c.fillStyle = shade(c, -10 - lift, -2 - lift, 250, 170);
-  c.fillRect(-21, -10 - lift, 42, 9);
-  c.fillStyle = gray(30);
-  c.fillRect(-3, -10 - lift, 6, 32 + lift);
-  c.strokeStyle = gray(255);
-  c.lineWidth = 3.5;
-  c.beginPath();
-  c.ellipse(-7, -15 - lift, 7, 4.5, -0.5, 0, TAU);
-  c.stroke();
-  c.beginPath();
-  c.ellipse(7, -15 - lift, 7, 4.5, 0.5, 0, TAU);
-  c.stroke();
-  c.restore();
-};
+/* -------------------------------------------------------------------- Kodo */
 
 const cup = (
   c: CanvasRenderingContext2D,
@@ -160,93 +132,127 @@ const ticket = (
   c.restore();
 };
 
-/** A phone running the offer carousel: cards glide, one is claimed, rewards fly out. */
-const thanks: SceneFn = (c, t) => {
-  c.fillStyle = gray(28);
-  rr(c, -122, -78, 92, 158, 16);
-  c.fill();
-  c.lineWidth = 3;
-  c.strokeStyle = shade(c, -78, 80, 235, 120);
-  c.stroke();
-  c.fillStyle = gray(150);
-  rr(c, -90, -71, 28, 4, 2);
-  c.fill();
-
-  const slot = 1.8;
-  const i = Math.floor(t / slot);
-  const local = (t % slot) / slot;
-  const slide = ease(clamp01((local - 0.72) / 0.28));
+/** A coin marked with a star, with a smaller one tucked behind it. */
+const pointsCoin = (
+  c: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  s: number,
+) => {
   c.save();
+  c.translate(x, y);
+  c.scale(s, s);
+  c.fillStyle = shade(c, -24, -2, 170, 70);
   c.beginPath();
-  c.rect(-118, -60, 84, 100);
-  c.clip();
-  for (let k = -1; k <= 2; k++) {
-    const idx = (((i + k) % 3) + 3) % 3;
-    const cx = -76 + (k - slide) * 66;
-    const depth = 1 - Math.min(1, Math.abs(cx + 76) / 66) * 0.25;
-    c.fillStyle = gray(Math.round(70 * depth));
-    rr(c, cx - 30, -48, 60, 74, 6);
-    c.fill();
-    c.strokeStyle = gray(Math.round(160 * depth));
-    c.lineWidth = 1.5;
-    c.stroke();
-    if (idx === 0) giftBox(c, cx, -14, depth, t);
-    else if (idx === 1) cup(c, cx, -14, depth, t);
-    else ticket(c, cx, -12, depth);
-    c.fillStyle = gray(Math.round(140 * depth));
-    c.fillRect(cx - 18, 12, 36, 3);
-    c.fillStyle = gray(Math.round(90 * depth));
-    c.fillRect(cx - 12, 18, 24, 2);
-  }
-  c.restore();
-
-  for (let k = 0; k < 3; k++) {
-    c.fillStyle = gray(k === i % 3 ? 255 : 90);
-    c.beginPath();
-    c.arc(-84 + k * 8, 34, k === i % 3 ? 2.6 : 1.8, 0, TAU);
-    c.fill();
-  }
-  const press =
-    clamp01((local - 0.35) / 0.12) * (1 - clamp01((local - 0.5) / 0.15));
-  c.fillStyle = shade(c, 44, 60, 255 - press * 40, 180 - press * 40);
-  rr(c, -108, 44 + press * 2, 64, 15, 7);
+  c.arc(14, -13, 11, 0, TAU);
   c.fill();
-  if (local > 0.42 && local < 0.85) {
-    const p = (local - 0.42) / 0.43;
-    for (let k = 0; k < 12; k++) {
-      const a = (k / 12) * TAU;
-      const r = 10 + p * 46;
-      c.fillStyle = gray(255, 1 - p);
+  c.fillStyle = shade(c, -19, 19, 250, 110);
+  c.beginPath();
+  c.arc(-3, 2, 19, 0, TAU);
+  c.fill();
+  c.fillStyle = gray(30);
+  c.beginPath();
+  for (let k = 0; k < 10; k++) {
+    const r = k % 2 === 0 ? 11 : 4.6;
+    const a = (k / 10) * TAU - Math.PI / 2;
+    const px = -3 + Math.cos(a) * r;
+    const py = 2 + Math.sin(a) * r;
+    if (k === 0) c.moveTo(px, py);
+    else c.lineTo(px, py);
+  }
+  c.closePath();
+  c.fill();
+  c.restore();
+};
+
+const KODO_LOOP = 6.6;
+const OFFER_GAP = 96;
+const CARD_W = 76;
+const CARD_H = 112;
+
+/** A carousel of coffee, points and tickets that settles on the coffee. */
+const kodo: SceneFn = (c, t) => {
+  const cycle = Math.floor(t / KODO_LOOP);
+  const local = t - cycle * KODO_LOOP;
+  const between = (from: number, to: number) =>
+    ease(clamp01((local - from) / (to - from)));
+
+  // Coffee, then points, tickets and back to the coffee, which gets picked.
+  const position =
+    cycle * 3 + between(0.6, 1.05) + between(1.6, 2.05) + between(2.6, 3.05);
+  const selected =
+    between(3.2, 3.55) * (1 - between(KODO_LOOP - 0.5, KODO_LOOP));
+
+  const first = Math.floor(position) - 2;
+  for (let k = first; k <= first + 4; k++) {
+    const offer = ((k % 3) + 3) % 3;
+    const x = (k - position) * OFFER_GAP;
+    const near = 1 - Math.min(1, Math.abs(x) / OFFER_GAP);
+    const scale = 0.8 + near * 0.2;
+    const picked = offer === 0 && Math.abs(x) < 1 ? selected : 0;
+
+    c.save();
+    c.translate(x, -4);
+    c.scale(scale + picked * 0.1, scale + picked * 0.1);
+    const level = 0.5 + near * 0.5;
+    c.fillStyle = gray(Math.round((60 + picked * 32) * level));
+    rr(c, -CARD_W / 2, -CARD_H / 2, CARD_W, CARD_H, 8);
+    c.fill();
+    c.strokeStyle = gray(Math.round((150 + picked * 105) * level));
+    c.lineWidth = 1.5 + picked * 1.5;
+    c.stroke();
+    if (offer === 0) cup(c, 0, -12, level, t);
+    else if (offer === 1) pointsCoin(c, 0, -14, level);
+    else ticket(c, 0, -14, level);
+    c.fillStyle = gray(Math.round((110 + picked * 145) * level));
+    rr(c, -27, 34, 54, 12, 6);
+    c.fill();
+
+    if (picked > 0) {
+      c.fillStyle = gray(255, picked);
+      c.beginPath();
+      c.arc(CARD_W / 2 - 7, -CARD_H / 2 + 7, 11 * picked, 0, TAU);
+      c.fill();
+      c.strokeStyle = gray(20, picked);
+      c.lineWidth = 2.8;
+      c.lineCap = "round";
+      c.beginPath();
+      c.moveTo(CARD_W / 2 - 12, -CARD_H / 2 + 7);
+      c.lineTo(CARD_W / 2 - 8.5, -CARD_H / 2 + 11);
+      c.lineTo(CARD_W / 2 - 2, -CARD_H / 2 + 3);
+      c.stroke();
+      c.lineCap = "butt";
+    }
+    c.restore();
+  }
+
+  // Which offer is showing.
+  const showing = ((Math.round(position) % 3) + 3) % 3;
+  for (let k = 0; k < 3; k++) {
+    const on = showing === k;
+    c.fillStyle = gray(on ? 255 : 90);
+    c.beginPath();
+    c.arc(-9 + k * 9, 70, on ? 2.8 : 1.9, 0, TAU);
+    c.fill();
+  }
+
+  // A burst as the coffee is picked.
+  const burst = clamp01((local - 3.2) / 0.9);
+  if (burst > 0 && burst < 1) {
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * TAU + 0.2;
+      const r = 62 + ease(burst) * 34;
+      c.fillStyle = gray(255, 1 - burst);
       c.beginPath();
       c.arc(
-        -76 + Math.cos(a) * r,
-        51 + Math.sin(a) * r * 0.7,
-        2.4 * (1 - p) + 0.6,
+        Math.cos(a) * r * 0.9,
+        -4 + Math.sin(a) * r * 0.72,
+        2.8 * (1 - burst) + 0.6,
         0,
         TAU,
       );
       c.fill();
     }
-  }
-
-  // Rewards arc out of the phone onto a growing stack
-  for (let k = 0; k < 4; k++) {
-    const ph = (t * 0.55 + k / 4) % 1;
-    const x = -24 + ph * 116;
-    const y = -10 - Math.sin(ph * Math.PI) * 44;
-    c.save();
-    c.translate(x, y);
-    c.rotate(ph * 0.8 - 0.4);
-    c.globalAlpha = Math.sin(ph * Math.PI);
-    giftBox(c, 0, 0, 0.6, t + k);
-    c.restore();
-  }
-  c.globalAlpha = 1;
-  const n = 6 + (Math.floor(t * 1.1) % 6);
-  for (let k = 0; k < n; k++) {
-    c.fillStyle = shade(c, 70 - k * 7, 76 - k * 7, 240 - k * 8, 120);
-    rr(c, 70, 68 - k * 7, 48, 6, 2);
-    c.fill();
   }
 };
 
@@ -781,7 +787,7 @@ const ibm: SceneFn = (c, t) => {
 };
 
 export const COMPANY_GLYPHS: Record<string, SceneFn> = {
-  kodo: thanks,
+  kodo,
   "commbank-staff": commbankStaff,
   "commbank-senior": commbankSenior,
   quantium,

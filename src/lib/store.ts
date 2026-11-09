@@ -28,6 +28,8 @@ interface State {
   readonly palette: { open: boolean; query: string };
   readonly interest: string;
   readonly hoverInterest: string | null;
+  /** The routed page has finished hydrating. */
+  readonly pageHydrated: boolean;
   readonly toast: { id: number; text: string } | null;
   /** The boot sequence has finished (or was skipped). */
   readonly booted: boolean;
@@ -38,6 +40,7 @@ let state: State = {
   palette: { open: false, query: "" },
   interest: "bouldering",
   hoverInterest: null,
+  pageHydrated: false,
   toast: null,
   booted: false,
 };
@@ -104,6 +107,9 @@ export const actions = {
   },
   hoverInterest(slug: string | null) {
     if (state.hoverInterest !== slug) set({ hoverInterest: slug });
+  },
+  markPageHydrated() {
+    if (!state.pageHydrated) set({ pageHydrated: true });
   },
   setBooted() {
     if (!state.booted) set({ booted: true });

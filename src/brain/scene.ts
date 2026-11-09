@@ -27,6 +27,8 @@ import {
 export interface BrainScene {
   /** Select a region and swing the camera toward it. */
   focus(region: Region): void;
+  /** Show a region as if selected, holding the camera on it until cleared. */
+  preview(region: Region | null): void;
   dispose(): void;
 }
 
@@ -245,6 +247,7 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
   let vpitch = 0;
   let selected: Region = opts.selected;
   let hovered: Region | null = null;
+  let previewed: Region | null = null;
   // Idle tilt toward the cursor anywhere on the page.
   let lookX = 0;
   let lookY = 0;
@@ -312,14 +315,29 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
     opts.host.style.cursor = drag ? "grabbing" : r ? "pointer" : "grab";
   };
 
-  const focus = (region: Region) => {
-    selected = region;
+  const aimAt = (region: Region, holdMs: number) => {
     const anchor = brain.anchors
       .filter((a) => a.region === region)
       // Of DJing's two anchors, swing to whichever is nearer.
       .map((a) => ({ a, f: facing(a.at, yaw) }))
       .sort((p, q) => Math.abs(p.f.yaw - yaw) - Math.abs(q.f.yaw - yaw))[0];
-    if (anchor) aim = { ...anchor.f, until: performance.now() + 2600 };
+    if (anchor) aim = { ...anchor.f, until: performance.now() + holdMs };
+  };
+
+  const focus = (region: Region) => {
+    selected = region;
+    aimAt(region, 2600);
+  };
+
+  const preview = (region: Region | null) => {
+    // A region under the pointer is already in view, so the camera stays put.
+    if (region === null || region === hovered) {
+      if (previewed) aim = null;
+      previewed = null;
+      return;
+    }
+    previewed = region;
+    aimAt(region, Number.POSITIVE_INFINITY);
   };
 
   const onDown = (e: PointerEvent) => {
@@ -401,8 +419,9 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
     }
 
     const e = 1 - Math.exp(-dt * 10);
+    const active = hovered ?? previewed ?? selected;
     for (const r of REGIONS) {
-      levels[r] += ((r === selected ? 1 : 0) - levels[r]) * e;
+      levels[r] += ((r === active ? 1 : 0) - levels[r]) * e;
       const glow = r === hovered ? 1 : 0;
       hoverLevels[r] += (glow - hoverLevels[r]) * e;
     }
@@ -489,6 +508,7 @@ export const createBrainScene = (opts: BrainOptions): BrainScene | null => {
 
   return {
     focus,
+    preview,
     dispose() {
       stop();
       io.disconnect();

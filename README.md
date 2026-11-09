@@ -23,7 +23,7 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm check` runs typecheck, lint and tests. `pnpm deploy` builds and deploys.
+`pnpm check` runs typecheck, lint and tests. `pnpm run deploy` builds and deploys.
 `pnpm build:artifact` builds a static, client-only copy into `dist-artifact/`
 (in-memory routing, relative paths) for hosting as a claude.ai artifact.
 
@@ -104,6 +104,6 @@ variable on the repository.
 ## Still to do
 
 - License Helvetica Now Display (Inter Tight is the fallback).
-- Fill the `[bracketed]` placeholders in `content/`.
-- Hero media for project popovers; a DJ mix embed.
-- OG image (`public/og.png`) and analytics.
+- A DJ mix embed.
+- Analytics.
+- A custom domain.

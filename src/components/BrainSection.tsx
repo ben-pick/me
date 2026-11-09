@@ -5,8 +5,8 @@ import { BrainPanel } from "./BrainPanel.tsx";
 import { SectionHeader } from "./ui.tsx";
 
 /**
- * The brain with a list of its regions beside it. Hovering a row lights that
- * region; clicking opens it (and swings the camera there).
+ * The brain with a list of its regions beside it. Hovering a row turns the
+ * brain to that region and plays its callout; clicking opens it.
  */
 export const BrainSection = () => {
   const selected = useStore((s) => s.interest);
@@ -31,7 +31,10 @@ export const BrainSection = () => {
                 <button
                   type="button"
                   aria-haspopup="dialog"
-                  onPointerEnter={() => actions.hoverInterest(i.slug)}
+                  onPointerEnter={(e) => {
+                    if (e.pointerType === "mouse")
+                      actions.hoverInterest(i.slug);
+                  }}
                   onFocus={() => actions.setInterest(i.slug)}
                   onClick={(e) =>
                     actions.openPopover(
