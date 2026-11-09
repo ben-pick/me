@@ -43,3 +43,5 @@ companies, projects and interests. Logs sort by `date`, newest first.
   under the [REDACTED] build log.
 
 The LinkedIn banner (`src/banner`) renders `site.json`. `pnpm deploy` regenerates `design/linkedin-banner.png`, and `pnpm test` fails if it falls behind. LinkedIn has no upload API, so re-upload the PNG by hand when it changes.
+
+The guided tour lives in `tour.json`, with the recording in `tour-narration.mp3` and its timings in `tour-timing.json`. After re-recording or rewording a stop, run `pnpm tour:audio`; `pnpm test` fails if the script and the recording disagree.

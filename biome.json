@@ -14,7 +14,7 @@
       "!**/.tanstack",
       "!worker-configuration.d.ts",
       "!src/routeTree.gen.ts",
-      "!public/tour/timing.json",
+      "!content/tour-timing.json",
       "!**/*.md"
     ]
   },

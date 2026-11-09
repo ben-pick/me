@@ -1,101 +1,77 @@
-/**
- * The tour's clock. The silent clock is always the source of truth: it can be
- * seeked instantly and can never be blocked by autoplay. The narration, when
- * there is one, follows it and is nudged back if it drifts.
- */
-
+/** Where the tour is up to, in seconds. */
 export interface Clock {
-  play(): Promise<void>;
-  pause(): void;
+  play(): void;
+  /** Jump to a time and carry on playing from there. */
   seek(seconds: number): void;
   now(): number;
-  dispose(): void;
+  stop(): void;
 }
 
-export const createSilentClock = (): Clock => {
-  let base = 0;
-  let startedAt = 0;
-  let running = false;
+/**
+ * The narration's playhead is the clock, so voice and visuals cannot drift and
+ * a slow connection holds both. If the browser refuses to play it, a timer
+ * takes over so the captions still run.
+ */
+export const createClock = (src: string): Clock => {
+  const audio = new Audio(src);
+  audio.preload = "auto";
 
-  const now = () =>
-    running ? base + (performance.now() - startedAt) / 1000 : base;
+  // Static hosting ignores range requests, so a streamed file can't be seeked.
+  // Playback starts on the stream; seeking switches to a complete local copy.
+  const download = fetch(src)
+    .then((response) => response.blob())
+    .then((blob) => URL.createObjectURL(blob))
+    .catch(() => null);
 
-  return {
-    async play() {
-      if (running) return;
-      startedAt = performance.now();
-      running = true;
-    },
-    pause() {
-      if (!running) return;
-      base = now();
-      running = false;
-    },
-    seek(seconds) {
-      base = Math.max(0, seconds);
-      startedAt = performance.now();
-    },
-    now,
-    dispose() {
-      running = false;
-    },
+  let seeking: number | null = null;
+  let timerOrigin: number | null = null;
+
+  const runOnTimer = (seconds: number) => {
+    audio.pause();
+    seeking = null;
+    timerOrigin = performance.now() - seconds * 1000;
   };
-};
 
-/** The recording, kept in step with the clock rather than driving it. */
-export interface Narration {
-  play(): void;
-  pause(): void;
-  seek(seconds: number): void;
-  /** Call every frame with the clock's time. */
-  follow(seconds: number): void;
-  dispose(): void;
-}
-
-const DRIFT = 0.3;
-const RETRY_MS = 2000;
-
-export const createNarration = (audio: HTMLAudioElement): Narration => {
-  let lastAttempt = 0;
+  const play = () => {
+    audio.play().catch((error: DOMException) => {
+      if (error.name === "NotAllowedError") runOnTimer(audio.currentTime);
+    });
+  };
 
   return {
-    play() {
-      lastAttempt = performance.now();
-      // A blocked autoplay is not an error: the tour still runs on captions.
-      audio.play().catch(() => undefined);
-    },
-    pause() {
-      audio.pause();
-    },
+    play,
     seek(seconds) {
-      try {
-        audio.currentTime = Math.max(0, seconds);
-      } catch {
-        // Metadata may not be ready; follow() will correct it.
+      if (timerOrigin !== null) {
+        runOnTimer(seconds);
+        return;
       }
-    },
-    follow(seconds) {
-      if (audio.readyState === 0) return;
-      if (Math.abs(audio.currentTime - seconds) > DRIFT) {
-        try {
-          audio.currentTime = seconds;
-        } catch {
+      seeking = seconds;
+      void download.then((local) => {
+        if (seeking === null) return;
+        if (!local) {
+          runOnTimer(seeking);
           return;
         }
-      }
-      // Autoplay is often blocked until a gesture; a click on Resume is one.
-      if (
-        audio.paused &&
-        !audio.ended &&
-        performance.now() - lastAttempt > RETRY_MS
-      ) {
-        this.play();
-      }
+        if (audio.src !== local) audio.src = local;
+        audio.currentTime = seeking;
+        seeking = null;
+        play();
+      });
     },
-    dispose() {
+    now() {
+      if (seeking !== null) return seeking;
+      return timerOrigin === null
+        ? audio.currentTime
+        : (performance.now() - timerOrigin) / 1000;
+    },
+    stop() {
+      seeking = null;
       audio.pause();
       audio.removeAttribute("src");
       audio.load();
+      void download.then((local) => {
+        if (local) URL.revokeObjectURL(local);
+      });
     },
   };
 };

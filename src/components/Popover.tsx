@@ -70,13 +70,18 @@ const usePopoverHash = (current: OpenPopover | null) => {
 const GAP = 10;
 const EDGE = 16;
 
-const usePlacement = (open: OpenPopover | null, panel: HTMLElement | null) => {
+const usePlacement = (
+  open: OpenPopover | null,
+  panel: HTMLElement | null,
+  /** Space to keep clear at the bottom of the viewport. */
+  inset: number,
+) => {
   const [style, setStyle] = useState<CSSProperties>({ visibility: "hidden" });
   useLayoutEffect(() => {
     if (!open || !panel) return;
     const place = () => {
       const vw = window.innerWidth;
-      const vh = window.innerHeight;
+      const vh = window.innerHeight - inset;
       const w = panel.offsetWidth;
       const h = Math.min(panel.scrollHeight, vh - EDGE * 2);
       const a = open.anchor;
@@ -106,7 +111,7 @@ const usePlacement = (open: OpenPopover | null, panel: HTMLElement | null) => {
       ro.disconnect();
       window.removeEventListener("resize", place);
     };
-  }, [open, panel]);
+  }, [open, panel, inset]);
   return style;
 };
 
@@ -398,6 +403,7 @@ const CloseButton = () => (
 
 export const PopoverHost = () => {
   const open = useStore((s) => s.popover);
+  const barHeight = useStore((s) => s.tour.barHeight);
   // Keep the last popover rendered during its exit animation.
   const [shown, setShown] = useState(open);
   useEffect(() => {
@@ -416,33 +422,49 @@ export const PopoverHost = () => {
 
   const mobile = useIsMobile();
   const [panel, setPanel] = useState<HTMLDivElement | null>(null);
-  const placement = usePlacement(mobile ? null : shown, panel);
+  // The tour decides when a guided popover closes, and needs the page beside
+  // it to stay live, so it opens non-modal: no backdrop, focus trap or scroll
+  // lock. `shown` keeps this stable through the exit animation.
+  const guided = (open ?? shown)?.guided === true;
+  const inset = guided ? barHeight : 0;
+  const placement = usePlacement(mobile ? null : shown, panel, inset);
   const sheet = useSheetDrag(() => actions.closePopover());
   const tone = shown?.tone ?? "ink";
+  const sheetAboveBar: CSSProperties = {
+    bottom: inset,
+    maxHeight: `calc(100dvh - ${inset + EDGE}px)`,
+  };
 
   return (
     <Dialog.Root
       open={open !== null}
-      onOpenChange={(o) => !o && actions.closePopover()}
+      modal={!guided}
+      onOpenChange={(o) => !o && !guided && actions.closePopover()}
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-panel/45 backdrop-blur-[2px] data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
         {shown ? (
           <Dialog.Content
             key={popoverHash(shown.id)}
-            data-tour-dialog=""
             ref={(el) => {
               setPanel(el);
               if (mobile) sheet.ref.current = el;
             }}
+            onOpenAutoFocus={(e) => {
+              if (guided) e.preventDefault();
+            }}
             onCloseAutoFocus={(e) => {
+              if (guided) {
+                e.preventDefault();
+                return;
+              }
               const t = shown.trigger;
               if (t?.isConnected) {
                 e.preventDefault();
                 t.focus({ preventScroll: true });
               }
             }}
-            style={mobile ? undefined : placement}
+            style={mobile ? (guided ? sheetAboveBar : undefined) : placement}
             className={cx(
               "fixed z-50 flex flex-col overflow-y-auto overscroll-contain border font-mono outline-none",
               toneClasses[tone],
@@ -451,7 +473,7 @@ export const PopoverHost = () => {
                 : "w-[min(520px,calc(100vw-32px))] data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in",
             )}
           >
-            {mobile ? (
+            {mobile && !guided ? (
               <div
                 {...sheet.handlers}
                 className="sticky top-0 z-10 flex h-8 shrink-0 cursor-grab touch-none items-center justify-center bg-inherit active:cursor-grabbing"
@@ -459,11 +481,11 @@ export const PopoverHost = () => {
                 <span className="h-px w-12 bg-current opacity-60" />
               </div>
             ) : null}
-            <CloseButton />
+            {guided ? null : <CloseButton />}
             <div
               className={cx(
                 "flex flex-col gap-5 [&>*]:animate-rise [&>*:nth-child(2)]:[animation-delay:40ms] [&>*:nth-child(3)]:[animation-delay:80ms] [&>*:nth-child(4)]:[animation-delay:120ms] [&>*:nth-child(5)]:[animation-delay:160ms] [&>*:nth-child(n+6)]:[animation-delay:200ms]",
-                mobile ? "px-5 pt-2" : "p-7",
+                mobile ? cx("px-5", guided ? "pt-6" : "pt-2") : "p-7",
               )}
             >
               <Body open={shown} />

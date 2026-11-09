@@ -1,13 +1,12 @@
 /**
- * Builds the tour narration from one recording per stop, then transcribes the
- * result so the tour can sync the visuals to each word.
+ * Builds the tour narration from one recording per stop.
  *
  *   pnpm tour:audio [folder]        # default ~/Documents/demoaudio
  *
  * The folder holds one subfolder per stop, prefixed 01, 02 … in tour order.
- * Each take is trimmed, levelled and joined, and its long pauses are replaced
- * with clean silence so breaths do not sit between sentences. Cuts follow the
- * audio's energy, never whisper's timings, which can drift and clip words.
+ * Each take is trimmed to its first and last sound and otherwise left as
+ * recorded, then the takes are joined and levelled. Writes the track and its
+ * timings to content/.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import {
@@ -22,21 +21,25 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import tour from "../content/tour.json" with { type: "json" };
 
-const GAP = 0.5;
+const GAP_SECONDS = 0.5;
+const SAMPLE_RATE = 16000;
+/** 10ms analysis frames. */
+const FRAME = SAMPLE_RATE / 100;
 const AUDIO = /\.(aifc|aiff|aif|wav|m4a|mp3|flac)$/i;
+const MP3 = "content/tour-narration.mp3";
+const TIMING = "content/tour-timing.json";
+
+const dir = process.argv[2] ?? join(homedir(), "Documents/demoaudio");
+const model =
+  process.env.WHISPER_MODEL ??
+  join(homedir(), ".cache/whisper/ggml-large-v3-turbo-q5_0.bin");
+if (!existsSync(dir)) throw new Error(`No recordings at ${dir}`);
 
 const run = (command: string, args: string[]) =>
   execFileSync(command, args, { encoding: "utf8", stdio: "pipe" });
 
-/** ffmpeg and friends write their reports to stderr, even when they succeed. */
-const capture = (command: string, args: string[]) => {
-  const result = spawnSync(command, args, { encoding: "utf8" });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(`${command} failed: ${result.stderr ?? ""}`);
-  }
-  return `${result.stdout ?? ""}${result.stderr ?? ""}`;
-};
+const ffmpeg = (...args: string[]) =>
+  run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args]);
 
 const duration = (file: string) =>
   Number(
@@ -51,82 +54,62 @@ const duration = (file: string) =>
     ]),
   );
 
-/**
- * Where the take starts and stops speaking: the outermost silences only, so a
- * pause in the middle (or a quiet final word) is never mistaken for the end.
- */
-const speech = (file: string): { start: number; end: number } => {
-  const total = duration(file);
-  const log = capture("ffmpeg", [
-    "-hide_banner",
-    "-nostats",
-    "-i",
-    file,
-    "-af",
-    "silencedetect=n=-45dB:d=0.15",
-    "-f",
-    "null",
-    "-",
-  ]);
-  const starts = [...log.matchAll(/silence_start: (-?[\d.]+)/g)].map((m) =>
-    Number(m[1]),
-  );
-  const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map((m) =>
-    Number(m[1]),
-  );
-  const firstStart = starts[0];
-  const firstEnd = ends[0];
-  const start =
-    firstStart !== undefined && firstStart < 0.2 && firstEnd !== undefined
-      ? firstEnd
-      : 0;
-  let end = total;
-  for (let i = 0; i < starts.length; i++) {
-    const from = starts[i];
-    const to = ends[i];
-    if (from === undefined) continue;
-    if (to === undefined || total - to < 0.1) end = from;
-  }
-  return { start, end: Math.max(start, end) };
-};
+const round = (seconds: number) => Math.round(seconds * 100) / 100;
 
-const pick = (dir: string) => {
-  const files = readdirSync(dir)
+/** The latest recording in a stop's folder. */
+const findTake = (prefix: string) => {
+  const folder = readdirSync(dir).find((name) => name.startsWith(prefix));
+  if (!folder) throw new Error(`No folder for stop ${prefix} in ${dir}`);
+  const take = readdirSync(join(dir, folder))
     .filter((name) => AUDIO.test(name))
-    .sort();
-  const file = files[files.length - 1];
-  if (!file) throw new Error(`No recording in ${dir}`);
-  return join(dir, file);
+    .sort()
+    .at(-1);
+  if (!take) throw new Error(`No recording in ${folder}`);
+  return join(dir, folder, take);
 };
 
-const words = (json: string) => {
-  const parsed = JSON.parse(readFileSync(json, "utf8")) as {
-    transcription: Array<{
-      tokens: Array<{ text: string; offsets: { from: number; to: number } }>;
-    }>;
-  };
-  return (
-    parsed.transcription
-      .flatMap((segment) => segment.tokens)
-      .map((token) => ({
-        word: token.text.replace(/^\s+/, ""),
-        start: token.offsets.from / 1000,
-        end: token.offsets.to / 1000,
-      }))
-      // Drop whisper's own markers such as [_BEG_] and punctuation-only tokens.
-      .filter(
-        (word) => /[\p{L}\p{N}]/u.test(word.word) && !word.word.startsWith("["),
-      )
+/** Where a take's first and last sounds are, in seconds. */
+const findSpeech = (source: string, workdir: string) => {
+  const raw = join(workdir, "levels.pcm");
+  ffmpeg(
+    "-i",
+    source,
+    "-ar",
+    String(SAMPLE_RATE),
+    "-ac",
+    "1",
+    "-f",
+    "s16le",
+    raw,
   );
+  const pcm = readFileSync(raw);
+  const samples = Math.floor(pcm.length / 2);
+  const levels: number[] = [];
+  for (let start = 0; start + FRAME < samples; start += FRAME) {
+    let sum = 0;
+    for (let i = start; i < start + FRAME; i++) {
+      sum += (pcm.readInt16LE(i * 2) / 32768) ** 2;
+    }
+    levels.push(Math.sqrt(sum / FRAME));
+  }
+  const speech = [...levels].sort((a, b) => a - b)[
+    Math.floor(levels.length * 0.9)
+  ];
+  const gate = (speech ?? 0.05) * 0.25;
+  const first = levels.findIndex((level) => level > gate);
+  const last = levels.findLastIndex((level) => level > gate);
+  if (first < 0) throw new Error(`No speech in ${source}`);
+  return { start: first / 100, end: (last + 1) / 100 };
 };
 
-/** Transcribes a file and returns its spoken words with timings. */
-const transcribe = (file: string, base: string) => {
+/** Word timings for a clip. Whisper splits rare words into several tokens. */
+const transcribe = (clip: string, workdir: string) => {
+  const base = join(workdir, "words");
   run("whisper-cli", [
     "-m",
     model,
     "-f",
-    file,
+    clip,
     "-l",
     "en",
     "-ojf",
@@ -134,210 +117,124 @@ const transcribe = (file: string, base: string) => {
     base,
     "-np",
   ]);
-  return words(`${base}.json`);
+  const { transcription } = JSON.parse(
+    readFileSync(`${base}.json`, "utf8"),
+  ) as {
+    transcription: Array<{
+      tokens: Array<{ text: string; offsets: { from: number; to: number } }>;
+    }>;
+  };
+  const words: Array<{ word: string; start: number; end: number }> = [];
+  for (const { text, offsets } of transcription.flatMap((s) => s.tokens)) {
+    if (text.startsWith("[")) continue;
+    const previous = words.at(-1);
+    if (previous && !/^\s/.test(text)) {
+      previous.word += text;
+      previous.end = offsets.to / 1000;
+    } else {
+      words.push({
+        word: text.trim(),
+        start: offsets.from / 1000,
+        end: offsets.to / 1000,
+      });
+    }
+  }
+  return words;
 };
 
-const dir = process.argv[2] ?? join(homedir(), "Documents/demoaudio");
-const model =
-  process.env.WHISPER_MODEL ??
-  join(homedir(), ".cache/whisper/ggml-large-v3-turbo-q5_0.bin");
-if (!existsSync(dir)) throw new Error(`No recordings at ${dir}`);
-
-const tmp = mkdtempSync(join(tmpdir(), "tour-audio-"));
+const workdir = mkdtempSync(join(tmpdir(), "tour-audio-"));
 try {
-  const parts: string[] = [];
-  const bounds: Array<{ id: string; start: number; end: number }> = [];
-  // Offset of this stop within the finished track.
+  const clips: string[] = [];
+  const stops: Array<{
+    id: string;
+    start: number;
+    end: number;
+    text: string;
+  }> = [];
+  const words: Array<{ word: string; start: number; end: number }> = [];
   let offset = 0;
-  let timing: Array<{ word: string; start: number; end: number }> = [];
 
   tour.stops.forEach((stop, index) => {
     const prefix = String(index + 1).padStart(2, "0");
-    const folder = readdirSync(dir)
-      .filter((name) => name.startsWith(prefix))
-      .map((name) => join(dir, name))
-      .find((path) => AUDIO.test(readdirSync(path).join("")));
-    if (!folder) throw new Error(`No folder for stop ${prefix} in ${dir}`);
+    const source = findTake(prefix);
+    const speech = findSpeech(source, workdir);
+    const start = Math.max(0, speech.start - 0.08);
+    const end = Math.min(duration(source), speech.end + 0.12);
 
-    const source = pick(folder);
-
-    // Decode once, so the ends can be found from the audio's own energy.
-    const raw = join(tmp, `${prefix}-source.pcm`);
-    run("ffmpeg", [
-      "-hide_banner",
-      "-loglevel",
-      "error",
-      "-y",
+    const clip = join(workdir, `${prefix}.wav`);
+    ffmpeg(
+      "-ss",
+      start.toFixed(3),
+      "-to",
+      end.toFixed(3),
       "-i",
       source,
-      "-ar",
-      "16000",
-      "-ac",
-      "1",
-      "-f",
-      "s16le",
-      raw,
-    ]);
-    const pcm = readFileSync(raw);
-    const frames = Math.floor(pcm.length / 2);
-    const RMS = (from: number, to: number) => {
-      let sum = 0;
-      let n = 0;
-      for (let i = Math.max(0, from); i < Math.min(frames, to); i++) {
-        const v = pcm.readInt16LE(i * 2) / 32768;
-        sum += v * v;
-        n++;
-      }
-      return n === 0 ? 0 : Math.sqrt(sum / n);
-    };
-    const total = duration(source);
-    /** Where this take's speech sits, as a level to test the ends against. */
-    const speechLevel = (() => {
-      const levels: number[] = [];
-      for (let f = 0; f + 160 < frames; f += 160) {
-        levels.push(RMS(f, f + 160));
-      }
-      levels.sort((a, b) => a - b);
-      return levels[Math.floor(levels.length * 0.9)] ?? 0.05;
-    })();
-    const levelAt = (t: number) => {
-      const f = Math.max(0, Math.floor(t * 16000));
-      return RMS(f, f + 160);
-    };
-
-    // Trim only the ends: everything before the first sound and after the last
-    // one goes, and the take in between is left exactly as recorded.
-    const FRAME = 0.01;
-    const gate = speechLevel * 0.25;
-    let startAt: number | null = null;
-    let endAt: number | null = null;
-    for (let t = 0; t < total; t += FRAME) {
-      if (levelAt(t) > gate) {
-        if (startAt === null) startAt = t;
-        endAt = t + FRAME;
-      }
-    }
-    const takeStart = Math.max(0, (startAt ?? 0) - 0.08);
-    const takeEnd = Math.min(total, (endAt ?? total) + 0.12);
-
-    const filters: string[] = [];
-    const span = Math.max(0.05, takeEnd - takeStart);
-    filters.push(
-      `[0:a]atrim=${takeStart.toFixed(3)}:${takeEnd.toFixed(3)},asetpts=PTS-STARTPTS,` +
-        `highpass=f=80,afftdn=nf=-32,` +
-        `afade=t=in:d=0.01,afade=t=out:st=${Math.max(0, span - 0.04).toFixed(3)}:d=0.04[out]`,
-    );
-
-    const part = join(tmp, `${prefix}.wav`);
-    run("ffmpeg", [
-      "-hide_banner",
-      "-loglevel",
-      "error",
-      "-y",
-      "-i",
-      source,
-      "-filter_complex",
-      filters.join(";"),
-      "-map",
-      "[out]",
+      "-af",
+      `highpass=f=80,afftdn=nf=-32,afade=t=in:d=0.01,afade=t=out:st=${(end - start - 0.04).toFixed(3)}:d=0.04`,
       "-ar",
       "44100",
       "-ac",
       "1",
-      part,
-    ]);
+      clip,
+    );
 
-    const length = duration(part);
-    timing = timing.concat(
-      words(
-        (() => {
-          const base = join(tmp, `${prefix}-words`);
-          run("whisper-cli", [
-            "-m",
-            model,
-            "-f",
-            part,
-            "-l",
-            "en",
-            "-ojf",
-            "-of",
-            base,
-            "-np",
-          ]);
-          return `${base}.json`;
-        })(),
-      ).map((word) => ({
-        ...word,
-        start: word.start + offset,
-        end: word.end + offset,
-      })),
-    );
-    bounds.push({ id: stop.id, start: offset, end: offset + length });
-    parts.push(part);
-    if (index < tour.stops.length - 1) parts.push("gap");
-    console.log(
-      `${prefix} ${stop.id}: ${length.toFixed(1)}s from ${source.replace(dir, "")}`,
-    );
-    offset += length + GAP;
+    const length = duration(clip);
+    for (const word of transcribe(clip, workdir)) {
+      words.push({
+        word: word.word,
+        start: round(word.start + offset),
+        end: round(word.end + offset),
+      });
+    }
+    stops.push({
+      id: stop.id,
+      start: round(offset),
+      end: round(offset + length),
+      text: stop.text,
+    });
+    clips.push(clip);
+    console.log(`${prefix} ${stop.id}: ${length.toFixed(1)}s`);
+    offset += length + GAP_SECONDS;
   });
 
-  const gap = join(tmp, "gap.wav");
-  run("ffmpeg", [
-    "-hide_banner",
-    "-loglevel",
-    "error",
-    "-y",
-    "-f",
-    "lavfi",
-    "-i",
-    `anullsrc=r=44100:cl=mono:d=${GAP}`,
-    gap,
-  ]);
-  const list = join(tmp, "list.txt");
+  const gap = join(workdir, "gap.wav");
+  ffmpeg("-f", "lavfi", "-i", `anullsrc=r=44100:cl=mono:d=${GAP_SECONDS}`, gap);
+  const list = join(workdir, "list.txt");
   writeFileSync(
     list,
-    parts.map((part) => `file '${part === "gap" ? gap : part}'`).join("\n"),
+    clips
+      .flatMap((clip, i) => (i === 0 ? [clip] : [gap, clip]))
+      .map((file) => `file '${file}'`)
+      .join("\n"),
   );
-  const mp3 = "public/tour/narration.mp3";
-  const joined = join(tmp, "joined.wav");
-  run("ffmpeg", [
-    "-hide_banner",
-    "-loglevel",
-    "error",
-    "-y",
-    "-f",
-    "concat",
-    "-safe",
-    "0",
-    "-i",
-    list,
-    "-c",
-    "copy",
-    joined,
-  ]);
-  // Level the finished track, so the joins can't leave stops at different volumes.
-  const analysis = capture("ffmpeg", [
-    "-hide_banner",
-    "-i",
-    joined,
-    "-af",
-    "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json",
-    "-f",
-    "null",
-    "-",
-  ]);
+  const joined = join(workdir, "joined.wav");
+  ffmpeg("-f", "concat", "-safe", "0", "-i", list, "-c", "copy", joined);
+
+  // Two-pass levelling of the whole track, so stops match in volume.
+  const target = "loudnorm=I=-16:TP=-1.5:LRA=11";
+  // ffmpeg prints the measurements to stderr, even on success.
+  const report = spawnSync(
+    "ffmpeg",
+    [
+      "-hide_banner",
+      "-i",
+      joined,
+      "-af",
+      `${target}:print_format=json`,
+      "-f",
+      "null",
+      "-",
+    ],
+    { encoding: "utf8" },
+  ).stderr;
   const measured = JSON.parse(
-    analysis.slice(analysis.lastIndexOf("{"), analysis.lastIndexOf("}") + 1),
+    report.slice(report.lastIndexOf("{"), report.lastIndexOf("}") + 1),
   ) as Record<string, string>;
-  run("ffmpeg", [
-    "-hide_banner",
-    "-loglevel",
-    "error",
-    "-y",
+  ffmpeg(
     "-i",
     joined,
     "-af",
-    `loudnorm=I=-16:TP=-1.5:LRA=11:measured_I=${measured.input_i}:measured_TP=${measured.input_tp}:measured_LRA=${measured.input_lra}:measured_thresh=${measured.input_thresh}:offset=${measured.target_offset}:linear=true`,
+    `${target}:measured_I=${measured.input_i}:measured_TP=${measured.input_tp}:measured_LRA=${measured.input_lra}:measured_thresh=${measured.input_thresh}:offset=${measured.target_offset}:linear=true`,
     "-ar",
     "44100",
     "-ac",
@@ -346,17 +243,14 @@ try {
     "libmp3lame",
     "-b:a",
     "128k",
-    mp3,
-  ]);
+    MP3,
+  );
 
-  const total = duration(mp3);
   writeFileSync(
-    "public/tour/timing.json",
-    `${JSON.stringify({ duration: total, stops: bounds, words: timing }, null, 0)}\n`,
+    TIMING,
+    `${JSON.stringify({ duration: round(duration(MP3)), stops, words })}\n`,
   );
-  console.log(
-    `\n${mp3} ${total.toFixed(1)}s, ${timing.length} words -> public/tour/timing.json`,
-  );
+  console.log(`\n${MP3}: ${duration(MP3).toFixed(1)}s, ${words.length} words`);
 } finally {
-  rmSync(tmp, { recursive: true, force: true });
+  rmSync(workdir, { recursive: true, force: true });
 }

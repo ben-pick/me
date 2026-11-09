@@ -1,45 +1,34 @@
-import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import tour from "../../content/tour.json" with { type: "json" };
-import { buildTimeline, type Timing } from "./timeline.ts";
+import tour from "../../content/tour.json";
+import timing from "../../content/tour-timing.json";
+import { phraseTime } from "./timeline.ts";
 
-const timingFile = "public/tour/timing.json";
-const timing = existsSync(timingFile)
-  ? (JSON.parse(readFileSync(timingFile, "utf8")) as Timing)
-  : null;
-
-/**
- * These checks assume whisper's word timings are roughly right, not that its
- * spelling is: it splits names like "Kodo" into "K odo", so comparing words
- * per stop would fail on a perfectly good recording.
- */
-describe("narration", () => {
-  it.skipIf(!timing)("has a timed stop for every line of the script", () => {
-    const timeline = buildTimeline(tour.stops, timing);
-    expect(timeline.timed).toBe(true);
-    expect(timeline.stops).toHaveLength(tour.stops.length);
-    for (const stop of timeline.stops) {
-      expect(stop.end - stop.start, `${stop.id} has no time`).toBeGreaterThan(
-        1.5,
-      );
-      expect(stop.end - stop.start, `${stop.id} runs long`).toBeLessThan(30);
-    }
+describe("the recording", () => {
+  it("matches the script, stop for stop", () => {
+    expect(
+      timing.stops.map(({ id, text }) => ({ id, text })),
+      "The script changed. Re-record the stop if needed, then run `pnpm tour:audio`.",
+    ).toEqual(tour.stops.map(({ id, text }) => ({ id, text })));
   });
 
-  it.skipIf(!timing)(
-    "keeps the stops in order and covers the recording",
-    () => {
-      const timeline = buildTimeline(tour.stops, timing);
-      for (let i = 0; i < timeline.stops.length - 1; i++) {
-        const stop = timeline.stops[i];
-        const next = timeline.stops[i + 1];
-        if (!stop || !next) continue;
-        expect(next.start).toBeGreaterThan(stop.start);
-        expect(next.start - stop.start).toBeLessThan(30);
+  it("runs in order and ends with the track", () => {
+    timing.stops.forEach((stop, i) => {
+      expect(stop.end).toBeGreaterThan(stop.start);
+      expect(stop.start).toBeGreaterThanOrEqual(timing.stops[i - 1]?.end ?? 0);
+    });
+    expect(timing.stops.at(-1)?.end).toBeCloseTo(timing.duration, 0);
+  });
+
+  it("says every phrase a beat is waiting for", () => {
+    for (const stop of tour.stops) {
+      const span = timing.stops.find((s) => s.id === stop.id);
+      if (!span) throw new Error(`No recording for ${stop.id}`);
+      for (const beat of "beats" in stop ? stop.beats : []) {
+        expect(
+          phraseTime(beat.on, span, timing.words),
+          `"${beat.on}" was not found in ${stop.id}`,
+        ).not.toBeNull();
       }
-      const last = timeline.stops[timeline.stops.length - 1];
-      expect(last?.start ?? 0).toBeLessThan(timeline.duration);
-      expect(timeline.duration).toBeCloseTo(timing?.duration ?? 0, 0);
-    },
-  );
+    }
+  });
 });

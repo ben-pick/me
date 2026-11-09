@@ -6,7 +6,7 @@ import { HeroGlyph } from "../components/HeroGlyph.tsx";
 import { Logs } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { Projects } from "../components/Projects.tsx";
-import { Tour } from "../components/Tour.tsx";
+import { TourButton, TourPlayer } from "../components/Tour.tsx";
 import { site } from "../content/index.ts";
 
 /**
@@ -61,7 +61,7 @@ export function Home() {
                   {t}
                 </span>
               ))}
-              <Tour />
+              <TourButton />
             </div>
           </div>
         </header>
@@ -77,6 +77,7 @@ export function Home() {
         </section>
         <Contact />
       </main>
+      <TourPlayer />
     </div>
   );
 }

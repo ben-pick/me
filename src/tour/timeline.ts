@@ -1,7 +1,7 @@
 /**
- * Tour timing, kept free of the DOM so it can be tested and replayed. The audio
- * position is the only clock: given a time in seconds, `stateAt` returns the
- * complete state the page should be in, which makes seeking idempotent.
+ * Tour timing, kept free of the DOM so it can be tested and replayed. Given a
+ * time in seconds, `stateAt` returns everything the page should be showing, so
+ * seeking needs no state of its own.
  */
 
 export interface Beat {
@@ -18,460 +18,131 @@ export interface Stop {
   readonly beats?: ReadonlyArray<Beat> | undefined;
 }
 
-export interface TimingWord {
-  readonly word: string;
-  readonly start: number;
-  readonly end: number;
-}
-
+/** Written by `pnpm tour:audio` alongside the recording. */
 export interface Timing {
   readonly duration: number;
-  /** Exact span of each stop in the recording, written by the build script. */
-  readonly stops?: ReadonlyArray<{
+  readonly stops: ReadonlyArray<{
     readonly id: string;
     readonly start: number;
     readonly end: number;
+    readonly text: string;
   }>;
-  readonly words: ReadonlyArray<TimingWord>;
+  readonly words: ReadonlyArray<{
+    readonly word: string;
+    readonly start: number;
+    readonly end: number;
+  }>;
 }
 
-export interface TimelineStop {
-  readonly id: string;
-  readonly target: string;
-  readonly open: string | null;
-  readonly text: string;
-  readonly start: number;
-  readonly end: number;
-  readonly index: number;
-  /** Share of the stop's words found in the recording; 1 when estimated. */
-  readonly coverage: number;
-}
-
-export interface TimelineBeat {
-  readonly stopId: string;
-  readonly stopIndex: number;
-  /** Seconds into the tour. */
+interface TimelineBeat {
   readonly at: number;
   readonly target: string | null;
   readonly region: string | null;
 }
 
+interface TimelineStop {
+  readonly start: number;
+  readonly target: string;
+  readonly open: string | null;
+  readonly text: string;
+  readonly beats: ReadonlyArray<TimelineBeat>;
+}
+
 export interface Timeline {
   readonly stops: ReadonlyArray<TimelineStop>;
-  readonly beats: ReadonlyArray<TimelineBeat>;
   readonly duration: number;
-  /** True when word timings were used instead of the word-count estimate. */
-  readonly timed: boolean;
 }
 
 export interface TourState {
-  readonly stopId: string;
   readonly stopIndex: number;
   readonly target: string;
   readonly open: string | null;
   readonly region: string | null;
   readonly caption: string;
-  readonly seconds: number;
-  readonly progress: number;
-  readonly ended: boolean;
 }
 
-/** 140 words per minute, plus a breath between stops. */
-const WORDS_PER_SECOND = 140 / 60;
-const STOP_GAP = 0.45;
-
-interface Token {
-  readonly norm: string;
-}
-
-const normalize = (word: string) =>
-  word
+const tokens = (text: string) =>
+  text
     .toLowerCase()
-    .normalize("NFC")
-    .replace(/[^\p{L}\p{N}]+/gu, "");
+    .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}\p{N}]+/gu, ""))
+    .filter(Boolean);
 
-const tokenize = (text: string): Token[] => {
-  const tokens: Token[] = [];
-  for (const match of text.matchAll(/\S+/g)) {
-    const norm = normalize(match[0]);
-    if (norm) tokens.push({ norm });
-  }
-  return tokens;
+/** When a phrase starts within a stop of the recording, if it was said. */
+export const phraseTime = (
+  phrase: string,
+  span: { readonly start: number; readonly end: number },
+  words: Timing["words"],
+): number | null => {
+  const spoken = words.filter(
+    (word) => word.start >= span.start && word.start <= span.end,
+  );
+  const wanted = tokens(phrase);
+  const said = spoken.map((word) => tokens(word.word).join(""));
+  const index = said.findIndex((_, from) =>
+    wanted.every((token, offset) => said[from + offset] === token),
+  );
+  return spoken[index]?.start ?? null;
 };
 
-interface Preparation {
-  readonly stop: Stop;
-  readonly tokens: ReadonlyArray<Token>;
-  /** Index into the timing words for each token, when aligned. */
-  readonly words: ReadonlyArray<number | null>;
-  readonly start: number;
-  readonly end: number;
-  readonly coverage: number;
-}
+/** Word times bunch up around pauses; a beat still needs time to register. */
+const MIN_BEAT_SECONDS = 0.6;
 
-/**
- * Aligns a stop's words to the recording's, in order. The search only looks a
- * few words ahead: the recording follows the script closely, so a distant match
- * means a dropped word, not a better fit. Looking further would let one stop
- * run into the next.
- */
-const LOOKAHEAD = 4;
-
-const align = (
-  target: ReadonlyArray<Token>,
-  words: ReadonlyArray<string>,
-  from: number,
-): { indices: Array<number | null>; cursor: number; matched: number } => {
-  let cursor = from;
-  let matched = 0;
-  const indices: Array<number | null> = [];
-  for (const token of target) {
-    const limit = Math.min(words.length, cursor + LOOKAHEAD);
-    let i = cursor;
-    while (i < limit && words[i] !== token.norm) i++;
-    if (i < limit) {
-      indices.push(i);
-      cursor = i + 1;
-      matched++;
-    } else {
-      indices.push(null);
-    }
-  }
-  return { indices, cursor, matched };
-};
-
-const estimate = (stops: ReadonlyArray<Stop>): Preparation[] => {
-  let cursor = 0;
-  return stops.map((stop) => {
-    const tokens = tokenize(stop.text);
-    const start = cursor;
-    const end = start + Math.max(1, tokens.length) / WORDS_PER_SECOND;
-    cursor = end + STOP_GAP;
-    return {
-      stop,
-      tokens,
-      words: tokens.map(() => null),
-      start,
-      end,
-      coverage: 1,
-    };
+const spaced = (beats: ReadonlyArray<TimelineBeat>) => {
+  let earliest = Number.NEGATIVE_INFINITY;
+  return beats.map((beat) => {
+    const at = Math.max(beat.at, earliest);
+    earliest = at + MIN_BEAT_SECONDS;
+    return { ...beat, at };
   });
 };
-
-const prepare = (
-  stops: ReadonlyArray<Stop>,
-  timing: Timing,
-): { prepared: Preparation[]; words: ReadonlyArray<TimingWord> } => {
-  const words = timing.words;
-  const normalized = words.map((word) => normalize(word.word));
-  let cursor = 0;
-  let previousEnd = 0;
-
-  const prepared = stops.map((stop) => {
-    const tokens = tokenize(stop.text);
-    const aligned = align(tokens, normalized, cursor);
-    cursor = aligned.cursor;
-
-    const first = aligned.indices.findIndex((i) => i !== null);
-    const last = aligned.indices.reduce<number>(
-      (found, i, index) => (i !== null ? index : found),
-      -1,
-    );
-    const firstWordIndex = first >= 0 ? (aligned.indices[first] ?? null) : null;
-    const lastWordIndex = last >= 0 ? (aligned.indices[last] ?? null) : null;
-    const firstWord =
-      firstWordIndex === null ? undefined : words[firstWordIndex];
-    const lastWord = lastWordIndex === null ? undefined : words[lastWordIndex];
-
-    let start: number;
-    let end: number;
-    if (firstWord && lastWord) {
-      start = Math.max(previousEnd, firstWord.start);
-      end = Math.max(start, lastWord.end);
-    } else {
-      // This stop was not in the recording; keep the order and use the estimate.
-      start = previousEnd + STOP_GAP;
-      end = start + Math.max(1, tokens.length) / WORDS_PER_SECOND;
-    }
-    previousEnd = end;
-
-    return {
-      stop,
-      tokens,
-      words: aligned.indices,
-      start,
-      end,
-      coverage: tokens.length > 0 ? aligned.matched / tokens.length : 1,
-    };
-  });
-
-  return { prepared, words };
-};
-
-const findPhrase = (
-  haystack: ReadonlyArray<string>,
-  needle: ReadonlyArray<string>,
-): number => {
-  if (needle.length === 0 || needle.length > haystack.length) return -1;
-  for (let i = 0; i <= haystack.length - needle.length; i++) {
-    let match = true;
-    for (let j = 0; j < needle.length; j++) {
-      if (haystack[i + j] !== needle[j]) {
-        match = false;
-        break;
-      }
-    }
-    if (match) return i;
-  }
-  return -1;
-};
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
-
-const beatTime = (
-  preparation: Preparation,
-  beat: Beat,
-  index: number,
-  count: number,
-  timed: boolean,
-  words: ReadonlyArray<TimingWord>,
-): number => {
-  const phrase = tokenize(beat.on).map((token) => token.norm);
-  const position = findPhrase(
-    preparation.tokens.map((token) => token.norm),
-    phrase,
-  );
-
-  if (position >= 0) {
-    if (timed) {
-      for (let i = position; i < preparation.words.length; i++) {
-        const wordIndex = preparation.words[i];
-        const word =
-          wordIndex === null || wordIndex === undefined
-            ? undefined
-            : words[wordIndex];
-        if (word) return clamp(word.start, preparation.start, preparation.end);
-      }
-      // The phrase itself was not in the timing; place it by word position.
-      const fraction =
-        preparation.tokens.length > 1
-          ? position / preparation.tokens.length
-          : 0;
-      return clamp(
-        preparation.start + fraction * (preparation.end - preparation.start),
-        preparation.start,
-        preparation.end,
-      );
-    }
-    return clamp(
-      preparation.start + position / WORDS_PER_SECOND,
-      preparation.start,
-      preparation.end,
-    );
-  }
-
-  // A beat that does not name its phrase still fires, evenly spaced.
-  const fraction = (index + 1) / (count + 1);
-  return clamp(
-    preparation.start + fraction * (preparation.end - preparation.start),
-    preparation.start,
-    preparation.end,
-  );
-};
-
-const emptyTimeline = (timed: boolean): Timeline => ({
-  stops: [],
-  beats: [],
-  duration: 0,
-  timed,
-});
 
 export const buildTimeline = (
   stops: ReadonlyArray<Stop>,
-  timing?: Timing | null,
-): Timeline => {
-  if (stops.length === 0) return emptyTimeline(false);
-
-  const timed =
-    timing !== undefined &&
-    timing !== null &&
-    timing.words.length > 0 &&
-    timing.duration > 0;
-  const words = timed ? (timing?.words ?? []) : [];
-
-  // When the recording's own stop boundaries are known, use them: they cannot
-  // drift, and whisper's word spellings stop mattering.
-  const explicit = timing?.stops;
-  if (timed && explicit && explicit.length === stops.length) {
-    const timelineStops: TimelineStop[] = stops.map((stop, index) => ({
-      id: stop.id,
-      target: stop.target,
-      open: stop.open ?? null,
-      text: stop.text,
-      start: explicit[index]?.start ?? 0,
-      end: explicit[index]?.end ?? 0,
-      index,
-      coverage: 1,
-    }));
-    const beats: TimelineBeat[] = [];
-    stops.forEach((stop, stopIndex) => {
-      const span = explicit[stopIndex];
-      if (!span || !stop.beats) return;
-      const inStop = words.filter(
-        (word) => word.start >= span.start && word.start <= span.end,
-      );
-      stop.beats?.forEach((beat, index) => {
-        const phrase = tokenize(beat.on).map((token) => token.norm);
-        const found = findPhrase(
-          inStop.map((word) => normalize(word.word)),
-          phrase,
-        );
-        const foundWord = found >= 0 ? inStop[found] : undefined;
-        const fraction = (index + 1) / ((stop.beats?.length ?? 1) + 1);
-        beats.push({
-          stopId: stop.id,
-          stopIndex,
-          at: foundWord
-            ? foundWord.start
-            : span.start + fraction * (span.end - span.start),
-          target: beat.target ?? null,
-          region: beat.region ?? null,
-        });
-      });
-    });
-    return {
-      stops: timelineStops,
-      beats: spaceBeats(beats, timelineStops),
-      duration: Math.max(timing?.duration ?? 0, timelineStops.at(-1)?.end ?? 0),
-      timed: true,
-    };
-  }
-  const prepared = timed
-    ? prepare(stops, timing as Timing).prepared
-    : estimate(stops);
-  const last = prepared[prepared.length - 1];
-  const duration = Math.max(
-    timed ? (timing?.duration ?? 0) : 0,
-    last?.end ?? 0,
-    last?.start ?? 0,
-  );
-
-  const timelineStops: TimelineStop[] = prepared.map((item, index) => {
-    const next = prepared[index + 1];
-    return {
-      id: item.stop.id,
-      target: item.stop.target,
-      open: item.stop.open ?? null,
-      text: item.stop.text,
-      start: item.start,
-      end: next ? Math.max(item.start, next.start) : duration,
-      index,
-      coverage: item.coverage,
-    };
-  });
-
-  const beats: TimelineBeat[] = [];
-  prepared.forEach((item, stopIndex) => {
-    const stop = timelineStops[stopIndex];
-    if (!stop || !item.stop.beats) return;
-    item.stop.beats.forEach((beat, index) => {
-      beats.push({
-        stopId: item.stop.id,
-        stopIndex,
-        at: beatTime(
-          item,
-          beat,
-          index,
-          item.stop.beats?.length ?? 1,
-          timed,
-          words,
+  timing: Timing,
+): Timeline => ({
+  duration: timing.duration,
+  stops: stops.flatMap((stop) => {
+    const span = timing.stops.find((recorded) => recorded.id === stop.id);
+    if (!span) return [];
+    return [
+      {
+        start: span.start,
+        target: stop.target,
+        open: stop.open ?? null,
+        text: stop.text,
+        beats: spaced(
+          (stop.beats ?? [])
+            .map((beat) => ({
+              at: phraseTime(beat.on, span, timing.words) ?? span.start,
+              target: beat.target ?? null,
+              region: beat.region ?? null,
+            }))
+            .sort((a, b) => a.at - b.at),
         ),
-        target: beat.target ?? null,
-        region: beat.region ?? null,
-      });
-    });
-  });
-  beats.sort((a, b) => a.stopIndex - b.stopIndex || a.at - b.at);
-
-  return {
-    stops: timelineStops,
-    beats: spaceBeats(beats, timelineStops),
-    duration,
-    timed,
-  };
-};
-
-/** Two beats landing together would swallow each other, so give each one room. */
-const spaceBeats = (
-  beats: ReadonlyArray<TimelineBeat>,
-  timelineStops: ReadonlyArray<TimelineStop>,
-): TimelineBeat[] => {
-  const spaced: TimelineBeat[] = [];
-  for (const beat of beats) {
-    const previous = spaced[spaced.length - 1];
-    const stop = timelineStops[beat.stopIndex];
-    if (!stop) continue;
-    const earliest =
-      previous && previous.stopIndex === beat.stopIndex
-        ? previous.at + 0.45
-        : Number.NEGATIVE_INFINITY;
-    const latest = Math.max(stop.start, stop.end - 0.2);
-    spaced.push({
-      ...beat,
-      at: Math.min(Math.max(beat.at, earliest), latest),
-    });
-  }
-  return spaced;
-};
-
-const emptyState = (): TourState => ({
-  stopId: "",
-  stopIndex: 0,
-  target: "",
-  open: null,
-  region: null,
-  caption: "",
-  seconds: 0,
-  progress: 0,
-  ended: true,
+      },
+    ];
+  }),
 });
 
 export const stateAt = (timeline: Timeline, seconds: number): TourState => {
-  if (timeline.stops.length === 0) return emptyState();
-
-  const duration = Math.max(0, timeline.duration);
-  const time = Number.isNaN(seconds)
-    ? 0
-    : Math.min(Math.max(seconds, 0), duration);
-
-  let stopIndex = 0;
-  for (let i = 0; i < timeline.stops.length; i++) {
-    const stop = timeline.stops[i];
-    if (stop && stop.start <= time) stopIndex = i;
-    else break;
-  }
+  const stopIndex = Math.max(
+    0,
+    timeline.stops.findLastIndex((stop) => stop.start <= seconds),
+  );
   const stop = timeline.stops[stopIndex];
-  if (!stop) return emptyState();
-
-  let target = stop.target;
+  let target = stop?.target ?? "";
   let region: string | null = null;
-  for (const beat of timeline.beats) {
-    if (beat.stopIndex !== stopIndex) continue;
-    if (beat.at > time) break;
-    if (beat.target !== null) target = beat.target;
-    if (beat.region !== null) region = beat.region;
+  for (const beat of stop?.beats ?? []) {
+    if (beat.at > seconds) break;
+    target = beat.target ?? target;
+    region = beat.region ?? region;
   }
-
   return {
-    stopId: stop.id,
     stopIndex,
     target,
-    open: stop.open,
+    open: stop?.open ?? null,
     region,
-    caption: stop.text,
-    seconds: time,
-    progress: duration > 0 ? time / duration : 0,
-    ended: time >= duration,
+    caption: stop?.text ?? "",
   };
 };

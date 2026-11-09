@@ -21,6 +21,8 @@ export interface OpenPopover {
   readonly anchor: Anchor | null;
   readonly tone: Tone;
   readonly trigger: HTMLElement | null;
+  /** Opened by the guided tour, which owns when it closes. */
+  readonly guided: boolean;
 }
 
 interface State {
@@ -33,6 +35,11 @@ interface State {
   readonly toast: { id: number; text: string } | null;
   /** The boot sequence has finished (or was skipped). */
   readonly booted: boolean;
+  readonly tour: {
+    readonly running: boolean;
+    /** Height of the control bar; modals keep clear of it. */
+    readonly barHeight: number;
+  };
 }
 
 let state: State = {
@@ -43,6 +50,7 @@ let state: State = {
   pageHydrated: false,
   toast: null,
   booted: false,
+  tour: { running: false, barHeight: 0 },
 };
 const listeners = new Set<() => void>();
 
@@ -89,6 +97,7 @@ export const actions = {
         anchor: opts.anchor ?? null,
         tone: opts.tone ?? (id.kind === "interest" ? "cream" : "ink"),
         trigger: opts.trigger ?? null,
+        guided: opts.guided ?? false,
       },
       palette: { ...state.palette, open: false },
     });
@@ -113,6 +122,13 @@ export const actions = {
   },
   setBooted() {
     if (!state.booted) set({ booted: true });
+  },
+  setTourRunning(running: boolean) {
+    set({ tour: { ...state.tour, running } });
+  },
+  setTourBarHeight(barHeight: number) {
+    if (state.tour.barHeight !== barHeight)
+      set({ tour: { ...state.tour, barHeight } });
   },
   toast(text: string) {
     set({ toast: { id: Date.now(), text } });
