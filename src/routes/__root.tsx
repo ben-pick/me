@@ -11,6 +11,7 @@ import { PopoverHost } from "../components/Popover.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { PAPER } from "../components/ui.tsx";
 import { site } from "../content/index.ts";
+import { absoluteUrl } from "../lib/seo.ts";
 import appCss from "../styles.css?url";
 
 const TITLE = site.seo.title;
@@ -30,7 +31,7 @@ export const Route = createRootRoute({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://bpick.dev/og.png" },
+      { property: "og:image", content: absoluteUrl(site, "/og.png") },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     scripts: [

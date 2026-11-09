@@ -67,6 +67,14 @@ export function Home() {
                 </span>
               ))}
             </div>
+            <p
+              style={{
+                animationDelay: `calc(var(--boot-delay, 0ms) + ${420 + site.tags.length * 60}ms)`,
+              }}
+              className="m-0 max-w-[68ch] animate-rise text-[14px] leading-[1.7]"
+            >
+              {site.intro}
+            </p>
           </div>
         </header>
         <CompanyIndex />

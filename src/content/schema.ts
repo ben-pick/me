@@ -86,7 +86,14 @@ export const SiteSchema = Schema.Struct({
   location: Schema.String,
   coordinates: Schema.String,
   tags: Strings,
-  seo: Schema.Struct({ title: Schema.String, description: Schema.String }),
+  /** The production origin, used for canonical URLs and the sitemap. */
+  url: Schema.String,
+  intro: Schema.String,
+  seo: Schema.Struct({
+    title: Schema.String,
+    description: Schema.String,
+    logsDescription: Schema.String,
+  }),
   contact: Schema.Struct({
     headline: Schema.String,
     email: Schema.String,

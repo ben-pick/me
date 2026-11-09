@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiContributionsRouteImport } from './routes/api/contributions'
 import { Route as LogsIndexRouteImport } from './routes/logs/index'
 import { Route as LogsSlugRouteImport } from './routes/logs/$slug'
@@ -17,6 +18,11 @@ import { Route as LogsSlugRouteImport } from './routes/logs/$slug'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiContributionsRoute = ApiContributionsRouteImport.update({
@@ -37,12 +43,14 @@ const LogsSlugRoute = LogsSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/contributions': typeof ApiContributionsRoute
   '/logs/$slug': typeof LogsSlugRoute
   '/logs/': typeof LogsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/contributions': typeof ApiContributionsRoute
   '/logs/$slug': typeof LogsSlugRoute
   '/logs': typeof LogsIndexRoute
@@ -50,20 +58,29 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/contributions': typeof ApiContributionsRoute
   '/logs/$slug': typeof LogsSlugRoute
   '/logs/': typeof LogsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/contributions' | '/logs/$slug' | '/logs/'
+  fullPaths:
+    '/' | '/sitemap.xml' | '/api/contributions' | '/logs/$slug' | '/logs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/contributions' | '/logs/$slug' | '/logs'
-  id: '__root__' | '/' | '/api/contributions' | '/logs/$slug' | '/logs/'
+  to: '/' | '/sitemap.xml' | '/api/contributions' | '/logs/$slug' | '/logs'
+  id:
+    | '__root__'
+    | '/'
+    | '/sitemap.xml'
+    | '/api/contributions'
+    | '/logs/$slug'
+    | '/logs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiContributionsRoute: typeof ApiContributionsRoute
   LogsSlugRoute: typeof LogsSlugRoute
   LogsIndexRoute: typeof LogsIndexRoute
@@ -76,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/contributions': {
@@ -104,6 +128,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiContributionsRoute: ApiContributionsRoute,
   LogsSlugRoute: LogsSlugRoute,
   LogsIndexRoute: LogsIndexRoute,

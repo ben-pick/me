@@ -14,7 +14,9 @@ Values in `[square brackets]` are placeholders still to fill in.
 | `role`, `location` | Nav ("Software Engineer / Sydney"), boot screen |
 | `coordinates` | Boot screen |
 | `tags` | The outlined chips under your name |
-| `seo.title`, `seo.description` | Browser tab, search results, link previews |
+| `url` | The production address, used for canonical URLs, the sitemap and link previews |
+| `intro` | The short bio under your name |
+| `seo.title`, `seo.description`, `seo.logsDescription` | Browser tab, search results, link previews (`logsDescription` is for `/logs`) |
 | `contact.headline` | "Let's build something." |
 | `contact.email`, `contact.github`, `contact.linkedin` | Contact band, ⌘K palette, ⌥2 / ⌥4 |
 | `contact.coffee.subject`, `.body` | The email drafted by "Book a coffee" (⌥5) |
@@ -41,6 +43,8 @@ companies, projects and interests. Logs sort by `date`, newest first.
 - **A project**: same in `projects/`. With only one project the card goes full width.
 - **A log**: add `logs/YYYY-MM-DD-some-slug.md`. Add `project: redacted` to file it
   under the [REDACTED] build log.
+
+`/sitemap.xml` and each page's canonical URL and link preview tags are generated from these files (`src/lib/seo.ts`), so a new log is listed as soon as it deploys.
 
 The LinkedIn banner (`src/banner`) renders `site.json`. `pnpm deploy` regenerates `design/linkedin-banner.png`, and `pnpm test` fails if it falls behind. LinkedIn has no upload API, so re-upload the PNG by hand when it changes.
 
