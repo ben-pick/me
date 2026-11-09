@@ -87,9 +87,17 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
+      {/*
+        Radix's modal scroll lock sets `overflow: hidden` on <body> while a
+        popover or the palette is open. On phones (iOS Safari especially)
+        toggling it moves the page's scroll container, so the sticky nav is
+        laid out again and flickers: shown, gone, shown. The lock already
+        blocks touch scrolling outside the dialog, so small screens keep the
+        page's own overflow.
+      */}
       <body
         style={PAPER}
-        className="m-0 bg-cream font-mono text-[13px] text-ink antialiased"
+        className="m-0 bg-cream font-mono text-[13px] text-ink antialiased max-md:[&[data-scroll-locked]]:!overflow-visible"
       >
         <a
           href="#main"
