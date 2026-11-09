@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 
@@ -17,9 +17,15 @@ export const tourAssetsPlugin = (publicDir = "public"): Plugin => {
     resolveId: (id) => (id === ID ? RESOLVED : undefined),
     load(id) {
       if (id !== RESOLVED) return undefined;
+      // A version makes a re-recording impossible to serve from cache.
+      const stamp = (name: string) => {
+        const file = resolve(tourRoot, name);
+        return existsSync(file) ? Math.round(statSync(file).mtimeMs) : 0;
+      };
       return `export default ${JSON.stringify({
         audio: existsSync(resolve(tourRoot, "narration.mp3")),
         timing: existsSync(resolve(tourRoot, "timing.json")),
+        version: `${stamp("narration.mp3")}-${stamp("timing.json")}`,
       })};`;
     },
     configureServer(server) {

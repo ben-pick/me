@@ -30,7 +30,11 @@ interface Rect {
 
 const parseTiming = (value: unknown): Timing | null => {
   if (typeof value !== "object" || value === null) return null;
-  const input = value as { duration?: unknown; words?: unknown };
+  const input = value as {
+    duration?: unknown;
+    words?: unknown;
+    stops?: unknown;
+  };
   if (
     typeof input.duration !== "number" ||
     !Number.isFinite(input.duration) ||
@@ -63,7 +67,25 @@ const parseTiming = (value: unknown): Timing | null => {
       end: Math.max(start, word.end),
     });
   }
-  return { duration: input.duration, words };
+  // The build script records where each stop actually sits; keep it, or the
+  // page falls back to guessing and can move on before a line finishes.
+  const stops: Array<{ id: string; start: number; end: number }> = [];
+  if (Array.isArray(input.stops)) {
+    for (const entry of input.stops) {
+      if (typeof entry !== "object" || entry === null) continue;
+      const stop = entry as { id?: unknown; start?: unknown; end?: unknown };
+      if (
+        typeof stop.id === "string" &&
+        typeof stop.start === "number" &&
+        typeof stop.end === "number"
+      ) {
+        stops.push({ id: stop.id, start: stop.start, end: stop.end });
+      }
+    }
+  }
+  return stops.length > 0
+    ? { duration: input.duration, stops, words }
+    : { duration: input.duration, words };
 };
 
 const targetElement = (name: string): HTMLElement | null => {
@@ -280,7 +302,7 @@ export const Tour = () => {
     lastKey.current = stateKey(first);
 
     if (audioAvailable.current) {
-      const element = new Audio("/tour/narration.mp3");
+      const element = new Audio(`/tour/narration.mp3?v=${tourAssets.version}`);
       element.preload = "auto";
       const voice = createNarration(element);
       narration.current = voice;
@@ -409,9 +431,10 @@ export const Tour = () => {
 
     const loadTiming = async () => {
       try {
-        const response = await fetch("/tour/timing.json", {
-          cache: "no-cache",
-        });
+        const response = await fetch(
+          `/tour/timing.json?v=${tourAssets.version}`,
+          { cache: "no-cache" },
+        );
         if (!response.ok) return;
         const value: unknown = await response.json();
         const parsed = parseTiming(value);
