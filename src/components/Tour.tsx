@@ -636,55 +636,6 @@ export const Tour = () => {
     <>
       {running ? (
         <>
-          {snapshot?.open ? null : (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none fixed inset-0 z-30"
-            >
-              {rect ? (
-                <>
-                  <div
-                    className="absolute bg-ink/35"
-                    style={{
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: Math.max(0, rect.top),
-                    }}
-                  />
-                  <div
-                    className="absolute bg-ink/35"
-                    style={{
-                      top: rect.top,
-                      left: 0,
-                      width: Math.max(0, rect.left),
-                      height: rect.height,
-                    }}
-                  />
-                  <div
-                    className="absolute bg-ink/35"
-                    style={{
-                      top: rect.top,
-                      left: rect.left + rect.width,
-                      right: 0,
-                      height: rect.height,
-                    }}
-                  />
-                  <div
-                    className="absolute bg-ink/35"
-                    style={{
-                      top: rect.top + rect.height,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                    }}
-                  />
-                </>
-              ) : (
-                <div className="absolute inset-0 bg-ink/35" />
-              )}
-            </div>
-          )}
           {rect ? (
             <div
               aria-hidden="true"
