@@ -245,7 +245,7 @@ export const TourButton = () => {
       onClick={() => tourPlayer.start()}
       aria-label="Take the audio tour"
       className={cx(
-        "flex min-h-11 items-center gap-2.5 border border-ink bg-ink px-3 font-mono text-[11px] uppercase whitespace-nowrap text-cream transition-colors duration-200 hover:bg-transparent hover:text-ink",
+        "flex min-h-11 items-center gap-2.5 border border-ink bg-ink px-3 font-mono text-[11px] uppercase whitespace-nowrap text-cream hover:bg-transparent hover:text-ink",
         running && "invisible",
       )}
     >
