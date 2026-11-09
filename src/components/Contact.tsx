@@ -29,6 +29,7 @@ export const Contact = () => {
     <section
       ref={ref}
       id="contact"
+      data-tour="contact"
       aria-label="Contact"
       onPointerEnter={() => {
         hovered.current = true;

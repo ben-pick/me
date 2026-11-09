@@ -12,6 +12,7 @@ import {
   LogFrontmatter,
   ProjectFrontmatter,
   SiteSchema,
+  TourSchema,
 } from "./schema.ts";
 import type { Content } from "./types.ts";
 
@@ -74,6 +75,7 @@ const readJson = <S extends Schema.Top>(file: string, schema: S): S["Type"] => {
 
 export const loadContent = (root: string): Content => ({
   site: readJson(join(root, "site.json"), SiteSchema),
+  tour: readJson(join(root, "tour.json"), TourSchema),
   companies: readCollection(join(root, "companies"), CompanyFrontmatter),
   projects: readCollection(join(root, "projects"), ProjectFrontmatter),
   interests: readCollection(join(root, "interests"), InterestFrontmatter),

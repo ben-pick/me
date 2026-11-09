@@ -7,9 +7,13 @@ export type {
   Log,
   Project,
   Site,
+  Tour,
+  TourBeat,
+  TourStop,
 } from "./types.ts";
 export { content };
 export const site = content.site;
+export const tour = content.tour;
 
 export const companyBySlug = (slug: string) =>
   content.companies.find((c) => c.slug === slug);

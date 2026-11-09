@@ -1,0 +1,83 @@
+{
+  "stops": [
+    {
+      "id": "hero",
+      "target": "hero",
+      "text": "Hey, I'm Ben. I'm a software engineer in Sydney, and you've just agreed to let me take over your screen for two minutes."
+    },
+    {
+      "id": "kodo",
+      "target": "kodo",
+      "open": "kodo",
+      "text": "Right now I'm a founding engineer at Kodo, building loyalty for the agentic world. I focus on embedding the best loyalty experiences, and I design the rewards platform that launched with AT&T's loyalty program, for over a hundred million customers."
+    },
+    {
+      "id": "commbank-staff",
+      "target": "commbank-staff",
+      "open": "commbank-staff",
+      "text": "Before that I was at CommBank, on the retail side. I led the rebuild of a twenty-five-year-old authentication system for more than twenty million customers, and started the move for CBA's auth teams to newer TypeScript stacks."
+    },
+    {
+      "id": "commbank-senior",
+      "target": "commbank-senior",
+      "open": "commbank-senior",
+      "text": "And before that, CommBank's institutional side. I helped lead the platform team that moved Murex, its trading platform, to the cloud, and it became the bank's largest cloud product. We built an AWS platform for managing isolated trading environments, so teams didn't need to know anything about cloud."
+    },
+    {
+      "id": "experience",
+      "target": "quantium",
+      "text": "Feel free to read the rest of my experience. It goes from startups to research before settling on software and product engineering, which is my passion now.",
+      "beats": [
+        {
+          "on": "read the rest",
+          "target": "quantium"
+        },
+        {
+          "on": "startups",
+          "target": "school-bytes"
+        },
+        {
+          "on": "research",
+          "target": "data61"
+        },
+        {
+          "on": "software and product engineering",
+          "target": "ibm"
+        }
+      ]
+    },
+    {
+      "id": "project",
+      "target": "redacted",
+      "text": "I'm also building a project that I hope becomes a full product soon. It's centred on sandboxing agentically generated web apps, and making it quick and easy to create them."
+    },
+    {
+      "id": "brain",
+      "target": "brain",
+      "text": "And this is a quick look inside my head. I'm currently obsessed with bouldering, gaming, streetwear and, of course, tech.",
+      "beats": [
+        {
+          "on": "bouldering",
+          "region": "bouldering"
+        },
+        {
+          "on": "gaming",
+          "region": "gaming"
+        },
+        {
+          "on": "streetwear",
+          "region": "streetwear"
+        },
+        {
+          "on": "tech",
+          "region": "tech"
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "target": "contact",
+      "text": "Thanks for checking this out. Everything's still here, so have a look around. And if any of it was interesting, let's build something."
+    }
+  ]
+}

@@ -36,6 +36,7 @@ const Card = ({ p, wide }: { p: Project; wide: boolean }) => {
     <button
       ref={ref}
       type="button"
+      data-tour={p.slug}
       aria-haspopup="dialog"
       onPointerMove={onMove}
       onPointerLeave={onLeave}

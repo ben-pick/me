@@ -12,6 +12,7 @@ import { interestBySlug, site } from "../content/index.ts";
 import { cx } from "../lib/cx.ts";
 import { useReducedMotion } from "../lib/hooks.ts";
 import { actions, getState, useStore } from "../lib/store.ts";
+import { registerBrainFocus } from "../tour/brain.ts";
 import { Brackets } from "./ui.tsx";
 
 const asRegion = (s: string): Region =>
@@ -135,6 +136,14 @@ export const BrainPanel = () => {
   useEffect(() => {
     scene.current?.preview(hovered ? asRegion(hovered) : null);
   }, [hovered]);
+
+  // The guided tour drives the same camera through this small bridge.
+  useEffect(() => {
+    registerBrainFocus((region) => {
+      scene.current?.focus(asRegion(region));
+    });
+    return () => registerBrainFocus(null);
+  }, []);
 
   const cycle = (dir: 1 | -1) => {
     const i = REGIONS.indexOf(selected);

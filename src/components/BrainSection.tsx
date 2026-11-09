@@ -12,7 +12,11 @@ export const BrainSection = () => {
   const selected = useStore((s) => s.interest);
   const hovered = useStore((s) => s.hoverInterest);
   return (
-    <section aria-labelledby="brain" className="flex flex-col">
+    <section
+      data-tour="brain"
+      aria-labelledby="brain"
+      className="flex flex-col"
+    >
       <SectionHeader
         id="brain"
         title={site.sections.brain.title}

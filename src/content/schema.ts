@@ -50,6 +50,30 @@ export const LogFrontmatter = Schema.Struct({
   draft: Schema.optional(Schema.Boolean),
 });
 
+/** A change partway through a tour stop, triggered by a phrase in its text. */
+export const TourBeat = Schema.Struct({
+  /** A phrase from the stop's narration. */
+  on: Schema.String,
+  /** Another `data-tour` target to spotlight. */
+  target: Schema.optional(Schema.String),
+  /** A brain region to focus. */
+  region: Schema.optional(Schema.String),
+});
+
+export const TourStop = Schema.Struct({
+  id: Schema.String,
+  /** The `data-tour` name to spotlight and scroll into view. */
+  target: Schema.String,
+  /** Company slug whose modal opens for this stop; omitted means closed. */
+  open: Schema.optional(Schema.String),
+  text: Schema.String,
+  beats: Schema.optional(Schema.Array(TourBeat)),
+});
+
+export const TourSchema = Schema.Struct({
+  stops: Schema.NonEmptyArray(TourStop),
+});
+
 const Section = Schema.Struct({
   title: Schema.String,
   caption: Schema.optional(Schema.String),

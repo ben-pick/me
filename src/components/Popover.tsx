@@ -430,6 +430,7 @@ export const PopoverHost = () => {
         {shown ? (
           <Dialog.Content
             key={popoverHash(shown.id)}
+            data-tour-dialog=""
             ref={(el) => {
               setPanel(el);
               if (mobile) sheet.ref.current = el;

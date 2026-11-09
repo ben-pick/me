@@ -6,6 +6,7 @@ import { HeroGlyph } from "../components/HeroGlyph.tsx";
 import { Logs } from "../components/Logs.tsx";
 import { Nav } from "../components/Nav.tsx";
 import { Projects } from "../components/Projects.tsx";
+import { Tour } from "../components/Tour.tsx";
 import { site } from "../content/index.ts";
 
 /**
@@ -36,7 +37,7 @@ export function Home() {
     <div className="mx-auto flex max-w-[1216px] flex-col gap-16 px-4 pt-6 pb-16 sm:px-8">
       <Nav />
       <main id="main" className="flex flex-col gap-16">
-        <header className="flex flex-col gap-6">
+        <header data-tour="hero" className="flex flex-col gap-6">
           <div className="flex flex-col gap-5">
             <div className="flex items-end justify-between gap-4 font-display text-[clamp(64px,12vw,176px)] leading-[0.86]">
               <h1 className="m-0 text-[length:inherit] font-[inherit] uppercase leading-[inherit] tracking-[-0.02em]">
@@ -60,6 +61,7 @@ export function Home() {
                   {t}
                 </span>
               ))}
+              <Tour />
             </div>
           </div>
         </header>
