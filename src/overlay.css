@@ -38,3 +38,41 @@
     animation-duration: 1ms !important;
   }
 }
+
+/*
+ * The sticky nav while a dialog is open.
+ *
+ * Safari mispaints a stuck sticky element under a backdrop-filter: for a
+ * frame or two it draws it at its unstuck spot (scrolled away), so the nav
+ * shows, vanishes and shows again as the overlay fades in or out. So the nav
+ * never sits under the overlay's blur. While a dialog is open it rises just
+ * above the overlay and blurs and tints itself to match, then drops back
+ * once the overlay has faded out. Taps pass through it to the overlay.
+ */
+.nav-dim {
+  will-change: filter;
+  transition:
+    filter 160ms ease-in,
+    z-index 0s 160ms;
+}
+.nav-dim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--color-panel) 45%, transparent);
+  opacity: 0;
+  transition: opacity 160ms ease-in;
+}
+.nav-dim[data-dimmed] {
+  z-index: 41;
+  filter: blur(2px);
+  pointer-events: none;
+  transition:
+    filter 180ms ease-out,
+    z-index 0s;
+}
+.nav-dim[data-dimmed]::after {
+  opacity: 1;
+  transition: opacity 180ms ease-out;
+}
