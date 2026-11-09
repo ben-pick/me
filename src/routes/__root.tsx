@@ -30,7 +30,7 @@ export const Route = createRootRoute({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/og.png" },
+      { property: "og:image", content: "https://bpick.dev/og.png" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     scripts: [
