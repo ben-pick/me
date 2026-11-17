@@ -138,12 +138,15 @@ loader: () => ({ contributions: getContributions() }),
 
 function ActivityGraph() {
   const { contributions } = Route.useLoaderData();
-  const data = use(contributions); // suspends until the stream delivers it
-  return <Graph data={data} />;
+  return (
+    <Await promise={contributions} fallback={<GraphSkeleton />}>
+      {(data) => <Graph data={data} />}
+    </Await>
+  );
 }
 ```
 
-The page renders immediately, a Suspense fallback holds the graph's place, and the data arrives in the same response. It's the same idea as streaming server components, with the slow part expressed as a promise in the data instead of as a component.
+The page renders immediately, the fallback holds the graph's place, and the data arrives in the same response. `<Await>` is a Suspense boundary and a render prop in one, so the loading state sits next to the data it's waiting for. React 19's `use(contributions)` does the same job, but it needs a `<Suspense>` placed somewhere above the component, and in a snippet that boundary is easy to leave out. It's the same idea as streaming server components, with the slow part expressed as a promise in the data instead of as a component.
 
 ## Other things Start fixed
 
