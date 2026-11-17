@@ -7,7 +7,7 @@ diagram: site
 draft: true
 ---
 
-I learned server-rendered React on the Next.js App Router. This site and [REDACTED] both run on TanStack Start, and after a few months the thing I notice most is what I stopped thinking about. In the App Router I asked one question of every file: which side of the boundary am I on? In Start I ask what a route needs before it renders, and I write that down in one function.
+I'm used to the Next.js App Router. This site and [REDACTED] both run on TanStack Start, and the biggest difference is a question I no longer have to ask. In the App Router every file raises it: which side of the boundary is this on? In Start the question is what a route needs before it renders, and the answer goes in one function.
 
 ## The loader
 
@@ -46,7 +46,7 @@ It looks simple, and the simplicity comes from a few decisions underneath it.
 
 ### Server first, client after
 
-The loader is not server code, and that turned out to be the best thing about it. It runs on the server for the first request, and in the browser on every navigation after that. Coming from the App Router, where a server component's `async` body never reaches the browser, I assumed the opposite.
+The loader is not server code, and that turned out to be the best thing about it. It runs on the server for the first request, and in the browser on every navigation after that. That's the opposite of the App Router, where a server component's `async` body never reaches the browser.
 
 I write one function and get both behaviours for free. A first visit, or a search engine, gets complete HTML with the data already in it, and the loader's result is serialized into the page so hydration doesn't fetch it again. From then on the app behaves like a single-page app: the router runs the loader in the browser, swaps the data and re-renders only the routes that changed. Nothing in the route says which mode it's in. The App Router gets a similar result by rendering server components on the server for every navigation and streaming the result to the client. Start's version is simpler: after the first page, the server only does what the browser can't.
 
@@ -62,7 +62,7 @@ It also means a loader that reads a database, a secret or `env` would try to do 
 
 ## Moving the boundary
 
-The App Router puts the client/server boundary in the component tree. `"use client"` marks a file as a door, and everything it imports comes through to the client side with it. Props crossing that door must be serializable, so you can't pass a callback from a server component to a client one. A context provider needs its own client wrapper file. A component library that uses `useState` anywhere needs `"use client"` somewhere above it. None of this is hard on its own, but it's a question I had to answer for every file, and getting it wrong usually showed up as a build error some distance from the cause.
+The App Router puts the client/server boundary in the component tree. `"use client"` marks a file as a door, and everything it imports comes through to the client side with it. Props crossing that door must be serializable, so you can't pass a callback from a server component to a client one. A context provider needs its own client wrapper file. A component library that uses `useState` anywhere needs `"use client"` somewhere above it. None of this is hard on its own, but it's a question every file has to answer, and the error for a wrong answer can appear some distance from the file that caused it.
 
 Start has no boundary in the tree. Every component renders on the server for the first request and hydrates in the browser, as React apps did before server components. The boundary moves to a function call:
 
@@ -86,7 +86,7 @@ export const Route = createFileRoute("/")({
 
 At build time Start's compiler splits that function. The server bundle keeps the handler. The client bundle gets a stub with the same signature that sends a request to an endpoint Start generates. During the first server render the loader calls the handler directly. After that, a navigation in the browser calls the stub, the stub makes the request, and the result comes back with the types intact.
 
-The boundary didn't disappear. It moved to a place where it has a name, an input and a return type, and where I can see it in an import. A rendering concern became a data concern, which is how I think about it anyway: components describe what the page looks like, and the server is just where some of the data comes from.
+The boundary didn't disappear. It moved to a place where it has a name, an input and a return type, and where I can see it in an import. A rendering concern became a data concern: components describe what the page looks like, and the server is just where some of the data comes from.
 
 ### Why I don't miss server actions
 
@@ -123,9 +123,9 @@ function PublishButton({ slug }: { slug: string }) {
 
 Three trade-offs come with this, and they're worth knowing before you choose it.
 
-**Every component ships to the browser.** Server components can render a heavy Markdown parser or syntax highlighter on the server and send only the HTML. In Start, whatever a component imports goes into the bundle. This site gets around that by parsing Markdown in a Vite plugin at build time, so the parser never reaches a route at all. Without that option I'd have to plan for the extra JavaScript.
+**Every component ships to the browser.** Server components can render a heavy Markdown parser or syntax highlighter on the server and send only the HTML. In Start, whatever a component imports goes into the bundle. This site gets around that by parsing Markdown in a Vite plugin at build time, so the parser never reaches a route at all. Without that option, the extra JavaScript is a cost to plan for.
 
-**A server function is a public endpoint.** Anyone can call the URL the compiler generates, with any input. Start lets you attach a validator, and I treat that as required whenever the function takes input. Next's server actions have the same property, but Start's look like ordinary function calls and make it easier to forget.
+**A server function is a public endpoint.** Anyone can call the URL the compiler generates, with any input. Start lets you attach a validator, and it should be treated as required whenever the function takes input. Next's server actions have the same property, but Start's look like ordinary function calls and make it easier to forget.
 
 **The bug changes shape.** In the App Router the common mistake was a hook in a file without `"use client"`. In Start it's importing a server-only module into code that runs on both sides, a loader being the usual place. Start has `createServerOnlyFn` and `createClientOnlyFn` to make that fail loudly instead of quietly shipping something.
 
@@ -169,12 +169,8 @@ export const Route = createFileRoute("/logs/")({
 
 In the App Router, `useSearchParams()` returns strings for you to parse, and reading it in a statically rendered page needs a Suspense boundary or the build fails. URL state is the most shareable state an app has, and Start treats it like the rest of its state.
 
-**I can see the cache.** The App Router has four caches: request memoization, the data cache, the full route cache and the client router cache. Their defaults changed between Next 14 and 15, and I've lost afternoons to a page that was static when I expected it to be dynamic. Start has one cache, in the browser, keyed by route, params and `loaderDeps`. Revisit a route and you get the cached data immediately while the loader refreshes it in the background. `staleTime` on the route sets how long it counts as fresh. Server-side caching is left to you, with HTTP. This site's `/api/contributions` route caches GitHub's response at the Cloudflare edge for six hours with `caches.default` and a `cache-control` header. It's more to write, and it's all visible in one file.
+**I can see the cache.** The App Router has four caches: request memoization, the data cache, the full route cache and the client router cache. Their defaults changed between Next 14 and 15, and whether a page ends up static or dynamic depends on what it happens to call. Start has one cache, in the browser, keyed by route, params and `loaderDeps`. Revisit a route and you get the cached data immediately while the loader refreshes it in the background. `staleTime` on the route sets how long it counts as fresh. Server-side caching is left to you, with HTTP. This site's `/api/contributions` route caches GitHub's response at the Cloudflare edge for six hours with `caches.default` and a `cache-control` header. It's more to write, and it's all visible in one file.
 
 **It's just Vite.** Start is a Vite plugin, so anything Vite runs works. This site's content pipeline is a forty-line Vite plugin that exposes the Markdown as a virtual module. Cloudflare's Vite plugin runs the dev server inside `workerd`, the same runtime as production, so `env` bindings and `caches` behave the same locally as they do deployed. With the App Router, the build and its deployment are shaped around Vercel, and other hosts depend on adapters.
 
 **Server routes sit beside pages.** `/sitemap.xml` is a file in `routes/` with a `GET` handler that returns a `Response`. It uses the same file routing and the same content imports as the pages. The App Router has `route.ts` for this too, so it's less a fix than parity, but it means one routing model for both.
-
-## What I'd tell myself
-
-Write the loader first. Before a component exists, decide what the route needs and whether every part of it is safe to run in the browser. Anything that isn't goes behind a server function, and anything slow goes into an unawaited promise. Once those three answers are in the loader, the component is just the page.
