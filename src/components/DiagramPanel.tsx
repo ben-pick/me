@@ -19,7 +19,19 @@ const chipOn = "border-cream bg-cream text-ink";
  * so they still work by keyboard and without WebGL; three.js loads lazily when
  * the panel nears the viewport.
  */
-export const DiagramPanel = ({ id }: { id: DiagramId }) => {
+export interface DiagramTabs {
+  readonly ids: ReadonlyArray<DiagramId>;
+  readonly onSelect: (id: DiagramId) => void;
+}
+
+export const DiagramPanel = ({
+  id,
+  tabs,
+}: {
+  id: DiagramId;
+  /** Sibling diagrams to switch between, drawn inside the panel. */
+  tabs?: DiagramTabs | undefined;
+}) => {
   const d = DIAGRAMS[id];
   const host = useRef<HTMLDivElement>(null);
   const gl = useRef<HTMLCanvasElement>(null);
@@ -142,6 +154,45 @@ export const DiagramPanel = ({ id }: { id: DiagramId }) => {
             className="pointer-events-none absolute inset-0 block size-full"
           />
         </div>
+        {tabs ? (
+          <div
+            className={cx(
+              "z-10 flex items-center gap-2.5 font-mono",
+              noWebGL ? "bg-panel p-4 pb-0" : "absolute top-3 left-3",
+            )}
+          >
+            <span className="hidden text-[10px] uppercase text-soft sm:inline">
+              Diagram
+            </span>
+            <div
+              role="tablist"
+              aria-label="Diagram"
+              className="flex border border-cream/50 bg-[#121212]/85 p-0.5"
+            >
+              {tabs.ids.map((t) => {
+                const on = t === id;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => tabs.onSelect(t)}
+                    className={cx(
+                      "flex min-h-8 items-center gap-1.5 whitespace-nowrap border-0 px-2 text-[11px] uppercase transition-colors duration-200 sm:gap-2 sm:px-3",
+                      on
+                        ? "bg-cream text-ink"
+                        : "cursor-pointer bg-transparent text-soft hover:bg-cream/10 hover:text-cream",
+                    )}
+                  >
+                    <span aria-hidden="true">{on ? "●" : "○"}</span>
+                    {DIAGRAMS[t].title}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-4 bg-panel p-4 font-mono text-cream">
