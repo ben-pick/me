@@ -534,38 +534,43 @@ const site: Diagram = {
   ],
 };
 
-const rendering: Diagram = {
-  title: "Start and the App Router",
+const browserNode = (detail: string): DiagramNode => ({
+  id: "browser",
+  label: "Browser",
+  kind: "client",
+  tech: "React 19",
+  detail,
+  at: [2.2, 1.5, 0],
+});
+
+const dataNode: DiagramNode = {
+  id: "data",
+  label: "Data",
+  kind: "store",
+  tech: "Database, secrets, env",
+  detail: "Anything that must never run in the browser.",
+  at: [-4.3, -1.3, 0],
+};
+
+const start: Diagram = {
+  title: "TanStack Start",
   caption:
-    "Server on the left, browser on the right. Start's parts sit in front and the App Router's behind. Play a flow from each and compare.",
+    "Server on the left, browser on the right. The loader sits in the wall because it runs on both sides. Play a flow, then switch to the App Router and play the same one.",
   initial: "loader",
   boundary: { x: 0, left: "Server", right: "Browser" },
   nodes: [
-    {
-      id: "browser",
-      label: "Browser",
-      kind: "client",
-      tech: "React 19",
-      detail: "Both frameworks send HTML for the first page, then hydrate it.",
-      at: [1.6, 1.6, 0],
-    },
-    {
-      id: "data",
-      label: "Data",
-      kind: "store",
-      tech: "Database, secrets, env",
-      detail:
-        "Anything that must never run in the browser. Both frameworks reach it only from the server.",
-      at: [-2.4, -1.6, 0],
-    },
+    browserNode(
+      "Gets server-rendered HTML once. After that, the app runs here and the server only answers data calls.",
+    ),
+    dataNode,
     {
       id: "loader",
       label: "Loader",
       kind: "object",
-      tech: "TanStack Start",
+      tech: "createFileRoute({ loader })",
       detail:
         "Sits in the wall because it runs on both sides: on the server for the first request, in the browser for every navigation after.",
-      at: [0, 0.4, 0.9],
+      at: [0, 0.3, 0.6],
     },
     {
       id: "ssr",
@@ -573,8 +578,8 @@ const rendering: Diagram = {
       kind: "service",
       tech: "TanStack Start on Workers",
       detail:
-        "Renders the whole page on the first request, then mostly steps aside. Later navigations never ask it for HTML.",
-      at: [-1.3, 1.5, 0.6],
+        "Renders the whole page on the first request, then steps aside. Later navigations never ask it for HTML.",
+      at: [-2.4, 1.4, 0.2],
     },
     {
       id: "serverfn",
@@ -583,7 +588,7 @@ const rendering: Diagram = {
       tech: "createServerFn",
       detail:
         "The boundary as a function call. The server keeps the handler, and the browser gets a stub that calls it over HTTP.",
-      at: [-1.3, -0.3, 0.8],
+      at: [-2.2, -0.5, 0.5],
     },
     {
       id: "router",
@@ -592,52 +597,7 @@ const rendering: Diagram = {
       tech: "Client router and cache",
       detail:
         "Runs loaders in the browser, caches their data by route and params, and preloads on hover.",
-      at: [1.7, -0.4, 0.9],
-    },
-    {
-      id: "rsc",
-      label: "Server components",
-      kind: "service",
-      tech: "Next.js App Router",
-      detail:
-        "Render on the server for the first request and for every navigation. Their code never reaches the browser.",
-      at: [-3.5, 1.4, -0.6],
-    },
-    {
-      id: "action",
-      label: "Server action",
-      kind: "object",
-      tech: '"use server"',
-      detail:
-        "A POST endpoint the build declares for you. It writes, revalidates and returns fresh UI in one call.",
-      at: [-3.1, -0.1, -0.6],
-    },
-    {
-      id: "nextcache",
-      label: "Next caches",
-      kind: "store",
-      tech: "Data cache, full route cache",
-      detail:
-        "Server-side caches that decide whether a page is rendered per request or once at build.",
-      at: [-4.7, -1.2, -0.4],
-    },
-    {
-      id: "nextrouter",
-      label: "Next router",
-      kind: "service",
-      tech: "Client router cache",
-      detail:
-        "Fetches each new route's server component output from the server and merges it into the page.",
-      at: [3.5, 0.7, -0.6],
-    },
-    {
-      id: "clientcomp",
-      label: "Client components",
-      kind: "client",
-      tech: '"use client"',
-      detail:
-        "Everything below a use client line. Only these ship JavaScript and hydrate.",
-      at: [3.6, -1.4, -0.3],
+      at: [2.8, -0.5, 0.4],
     },
   ],
   edges: [
@@ -648,21 +608,11 @@ const rendering: Diagram = {
     ["browser", "router"],
     ["router", "loader"],
     ["browser", "serverfn"],
-    ["browser", "rsc"],
-    ["rsc", "data"],
-    ["rsc", "nextcache"],
-    ["browser", "clientcomp"],
-    ["browser", "nextrouter"],
-    ["nextrouter", "rsc"],
-    ["clientcomp", "action"],
-    ["action", "data"],
-    ["action", "nextcache"],
-    ["action", "nextrouter"],
   ],
   flows: [
     {
-      id: "start-load",
-      label: "Start: first load",
+      id: "load",
+      label: "First load",
       steps: [
         {
           from: "browser",
@@ -692,13 +642,13 @@ const rendering: Diagram = {
       ],
     },
     {
-      id: "start-nav",
-      label: "Start: navigation",
+      id: "nav",
+      label: "Navigation",
       steps: [
         {
           from: "browser",
           to: "router",
-          note: "A link is hovered or clicked. The router handles it without a page load.",
+          note: "A link is hovered. With preload on intent, the router starts before the click.",
         },
         {
           from: "router",
@@ -718,13 +668,13 @@ const rendering: Diagram = {
         {
           from: "router",
           to: "browser",
-          note: "Only the routes that changed re-render. The server never rendered any HTML for this page.",
+          note: "On click the data is already cached. Only the routes that changed re-render, and the server rendered no HTML.",
         },
       ],
     },
     {
-      id: "start-write",
-      label: "Start: write",
+      id: "write",
+      label: "Write",
       steps: [
         {
           from: "browser",
@@ -753,9 +703,82 @@ const rendering: Diagram = {
         },
       ],
     },
+  ],
+};
+
+const appRouter: Diagram = {
+  title: "Next.js App Router",
+  caption:
+    "Server on the left, browser on the right. Server components never leave the server, so every navigation crosses the wall. Play a flow, then switch to Start and play the same one.",
+  initial: "rsc",
+  boundary: { x: 0, left: "Server", right: "Browser" },
+  nodes: [
+    browserNode(
+      "Gets server-rendered HTML plus a payload describing the server component tree. Only client components hydrate.",
+    ),
+    dataNode,
     {
-      id: "next-load",
-      label: "App Router: first load",
+      id: "rsc",
+      label: "Server components",
+      kind: "service",
+      tech: "async components",
+      detail:
+        "Render on the server for the first request and for every navigation. Their code never reaches the browser.",
+      at: [-2.4, 1.3, 0.2],
+    },
+    {
+      id: "action",
+      label: "Server action",
+      kind: "object",
+      tech: '"use server"',
+      detail:
+        "A POST endpoint the build declares for you. It writes, revalidates and returns fresh UI in one call.",
+      at: [-2, -0.6, 0.5],
+    },
+    {
+      id: "nextcache",
+      label: "Next caches",
+      kind: "store",
+      tech: "Data cache, full route cache",
+      detail:
+        "Server-side caches that decide whether a page is rendered per request or once at build.",
+      at: [-4.2, 0.6, -0.4],
+    },
+    {
+      id: "nextrouter",
+      label: "Next router",
+      kind: "service",
+      tech: "Client router cache",
+      detail:
+        "Fetches each new route's server component output from the server and merges it into the page.",
+      at: [2.5, -0.2, 0.4],
+    },
+    {
+      id: "clientcomp",
+      label: "Client components",
+      kind: "client",
+      tech: '"use client"',
+      detail:
+        "Everything below a use client line. Only these ship JavaScript and hydrate.",
+      at: [4, -1.3, -0.2],
+    },
+  ],
+  edges: [
+    ["browser", "rsc"],
+    ["rsc", "data"],
+    ["rsc", "nextcache"],
+    ["browser", "clientcomp"],
+    ["browser", "nextrouter"],
+    ["nextrouter", "rsc"],
+    ["clientcomp", "action"],
+    ["action", "data"],
+    ["action", "nextcache"],
+    ["action", "nextrouter"],
+  ],
+  flows: [
+    {
+      id: "load",
+      label: "First load",
       steps: [
         {
           from: "browser",
@@ -785,8 +808,8 @@ const rendering: Diagram = {
       ],
     },
     {
-      id: "next-nav",
-      label: "App Router: navigation",
+      id: "nav",
+      label: "Navigation",
       steps: [
         {
           from: "browser",
@@ -811,8 +834,8 @@ const rendering: Diagram = {
       ],
     },
     {
-      id: "next-write",
-      label: "App Router: write",
+      id: "write",
+      label: "Write",
       steps: [
         {
           from: "clientcomp",
@@ -842,5 +865,6 @@ const rendering: Diagram = {
 export const DIAGRAMS: Record<DiagramId, Diagram> = {
   architecture,
   site,
-  rendering,
+  start,
+  "app-router": appRouter,
 };

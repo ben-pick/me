@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { DiagramPanel } from "../components/DiagramPanel.tsx";
+import { Diagrams } from "../components/Diagrams.tsx";
 import { formatDate } from "../components/Logs.tsx";
 import { Markdown } from "../components/Markdown.tsx";
 import { Nav } from "../components/Nav.tsx";
@@ -52,7 +52,7 @@ export function LogPage({ log: post }: { log: Log }) {
           >
             {post.title}
           </h1>
-          <DiagramPanel key={post.slug} id={post.diagram} />
+          <Diagrams key={post.slug} ids={post.diagram} />
           <div className="max-w-[68ch] animate-rise [animation-delay:120ms]">
             <Markdown tree={post.body} />
           </div>

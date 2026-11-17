@@ -2,6 +2,7 @@ import { Schema } from "effect";
 import { DIAGRAM_IDS } from "../diagrams/ids.ts";
 
 const Strings = Schema.Array(Schema.String);
+const DiagramId = Schema.Literals(DIAGRAM_IDS);
 const Link = Schema.Struct({ label: Schema.String, href: Schema.String });
 
 export const CompanyFrontmatter = Schema.Struct({
@@ -45,8 +46,11 @@ export const LogFrontmatter = Schema.Struct({
   summary: Schema.String,
   /** Slug of the project this is a build log for, if any. */
   project: Schema.optional(Schema.String),
-  /** The interactive 3D diagram shown at the top of the log. */
-  diagram: Schema.Literals(DIAGRAM_IDS),
+  /**
+   * The interactive 3D diagram shown at the top of the log. A list shows each
+   * one behind a switcher, for logs that compare two things.
+   */
+  diagram: Schema.Union([DiagramId, Schema.NonEmptyArray(DiagramId)]),
   draft: Schema.optional(Schema.Boolean),
 });
 
