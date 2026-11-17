@@ -4,7 +4,6 @@ title: Loaders, not boundaries
 date: 2026-11-17
 summary: What changed when I moved from the Next.js App Router to TanStack Start, and why the loader is the part I'd keep.
 diagram: [start, app-router]
-draft: true
 ---
 
 I'm used to the Next.js App Router. This site and [REDACTED] both run on TanStack Start, and the biggest difference is a question I no longer have to ask. In the App Router every file raises it: which side of the boundary is this on? In Start the question is what a route needs before it renders, and the answer goes in one function.
@@ -149,8 +148,6 @@ function ActivityGraph() {
 The page renders immediately, the fallback holds the graph's place, and the data arrives in the same response. `<Await>` is a Suspense boundary and a render prop in one, so the loading state sits next to the data it's waiting for. React 19's `use(contributions)` does the same job, but it needs a `<Suspense>` placed somewhere above the component, and in a snippet that boundary is easy to leave out. It's the same idea as streaming server components, with the slow part expressed as a promise in the data instead of as a component.
 
 ## Other things Start fixed
-
-<!-- Pick the ones you want and delete the rest. Each stands alone. -->
 
 **Links can't point at pages that don't exist.** The router generates a route tree from the files, so `<Link to="/logs/$slug" params={{ slug }}>` is checked at compile time. Rename a route and every link to it fails `tsc`. The App Router takes an `href` string, and its typed-routes option only checks the path, not the params a route needs.
 
