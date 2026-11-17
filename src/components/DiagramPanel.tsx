@@ -156,28 +156,41 @@ export const DiagramPanel = ({
         </div>
         {tabs ? (
           <div
-            role="tablist"
-            aria-label="Diagrams"
             className={cx(
-              "z-10 flex flex-wrap gap-1.5",
+              "z-10 flex items-center gap-2.5 font-mono",
               noWebGL ? "bg-panel p-4 pb-0" : "absolute top-3 left-3",
             )}
           >
-            {tabs.ids.map((t) => (
-              <button
-                key={t}
-                type="button"
-                role="tab"
-                aria-selected={t === id}
-                onClick={() => tabs.onSelect(t)}
-                className={cx(
-                  chip,
-                  t === id ? chipOn : `${chipOff} bg-[#121212]/70`,
-                )}
-              >
-                {DIAGRAMS[t].title}
-              </button>
-            ))}
+            <span className="hidden text-[10px] uppercase text-soft sm:inline">
+              Diagram
+            </span>
+            <div
+              role="tablist"
+              aria-label="Diagram"
+              className="flex border border-cream/50 bg-[#121212]/85 p-0.5"
+            >
+              {tabs.ids.map((t) => {
+                const on = t === id;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => tabs.onSelect(t)}
+                    className={cx(
+                      "flex min-h-8 items-center gap-1.5 whitespace-nowrap border-0 px-2 text-[11px] uppercase transition-colors duration-200 sm:gap-2 sm:px-3",
+                      on
+                        ? "bg-cream text-ink"
+                        : "cursor-pointer bg-transparent text-soft hover:bg-cream/10 hover:text-cream",
+                    )}
+                  >
+                    <span aria-hidden="true">{on ? "●" : "○"}</span>
+                    {DIAGRAMS[t].title}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ) : null}
       </div>
