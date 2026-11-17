@@ -534,4 +534,313 @@ const site: Diagram = {
   ],
 };
 
-export const DIAGRAMS: Record<DiagramId, Diagram> = { architecture, site };
+const rendering: Diagram = {
+  title: "Start and the App Router",
+  caption:
+    "Server on the left, browser on the right. Start's parts sit in front and the App Router's behind. Play a flow from each and compare.",
+  initial: "loader",
+  boundary: { x: 0, left: "Server", right: "Browser" },
+  nodes: [
+    {
+      id: "browser",
+      label: "Browser",
+      kind: "client",
+      tech: "React 19",
+      detail: "Both frameworks send HTML for the first page, then hydrate it.",
+      at: [1.6, 1.6, 0],
+    },
+    {
+      id: "data",
+      label: "Data",
+      kind: "store",
+      tech: "Database, secrets, env",
+      detail:
+        "Anything that must never run in the browser. Both frameworks reach it only from the server.",
+      at: [-2.4, -1.6, 0],
+    },
+    {
+      id: "loader",
+      label: "Loader",
+      kind: "object",
+      tech: "TanStack Start",
+      detail:
+        "Sits in the wall because it runs on both sides: on the server for the first request, in the browser for every navigation after.",
+      at: [0, 0.4, 0.9],
+    },
+    {
+      id: "ssr",
+      label: "Start server",
+      kind: "service",
+      tech: "TanStack Start on Workers",
+      detail:
+        "Renders the whole page on the first request, then mostly steps aside. Later navigations never ask it for HTML.",
+      at: [-1.3, 1.5, 0.6],
+    },
+    {
+      id: "serverfn",
+      label: "Server function",
+      kind: "object",
+      tech: "createServerFn",
+      detail:
+        "The boundary as a function call. The server keeps the handler, and the browser gets a stub that calls it over HTTP.",
+      at: [-1.3, -0.3, 0.8],
+    },
+    {
+      id: "router",
+      label: "TanStack Router",
+      kind: "service",
+      tech: "Client router and cache",
+      detail:
+        "Runs loaders in the browser, caches their data by route and params, and preloads on hover.",
+      at: [1.7, -0.4, 0.9],
+    },
+    {
+      id: "rsc",
+      label: "Server components",
+      kind: "service",
+      tech: "Next.js App Router",
+      detail:
+        "Render on the server for the first request and for every navigation. Their code never reaches the browser.",
+      at: [-3.5, 1.4, -0.6],
+    },
+    {
+      id: "action",
+      label: "Server action",
+      kind: "object",
+      tech: '"use server"',
+      detail:
+        "A POST endpoint the build declares for you. It writes, revalidates and returns fresh UI in one call.",
+      at: [-3.1, -0.1, -0.6],
+    },
+    {
+      id: "nextcache",
+      label: "Next caches",
+      kind: "store",
+      tech: "Data cache, full route cache",
+      detail:
+        "Server-side caches that decide whether a page is rendered per request or once at build.",
+      at: [-4.7, -1.2, -0.4],
+    },
+    {
+      id: "nextrouter",
+      label: "Next router",
+      kind: "service",
+      tech: "Client router cache",
+      detail:
+        "Fetches each new route's server component output from the server and merges it into the page.",
+      at: [3.5, 0.7, -0.6],
+    },
+    {
+      id: "clientcomp",
+      label: "Client components",
+      kind: "client",
+      tech: '"use client"',
+      detail:
+        "Everything below a use client line. Only these ship JavaScript and hydrate.",
+      at: [3.6, -1.4, -0.3],
+    },
+  ],
+  edges: [
+    ["browser", "ssr"],
+    ["ssr", "loader"],
+    ["loader", "serverfn"],
+    ["serverfn", "data"],
+    ["browser", "router"],
+    ["router", "loader"],
+    ["browser", "serverfn"],
+    ["browser", "rsc"],
+    ["rsc", "data"],
+    ["rsc", "nextcache"],
+    ["browser", "clientcomp"],
+    ["browser", "nextrouter"],
+    ["nextrouter", "rsc"],
+    ["clientcomp", "action"],
+    ["action", "data"],
+    ["action", "nextcache"],
+    ["action", "nextrouter"],
+  ],
+  flows: [
+    {
+      id: "start-load",
+      label: "Start: first load",
+      steps: [
+        {
+          from: "browser",
+          to: "ssr",
+          note: "The browser requests a page.",
+        },
+        {
+          from: "ssr",
+          to: "loader",
+          note: "The server matches the route and runs its loader before rendering anything.",
+        },
+        {
+          from: "loader",
+          to: "serverfn",
+          note: "On the server, calling a server function goes straight to its handler. No HTTP.",
+        },
+        {
+          from: "serverfn",
+          to: "data",
+          note: "The handler reads the data.",
+        },
+        {
+          from: "ssr",
+          to: "browser",
+          note: "HTML arrives with the loader's result serialized into it, so hydration doesn't fetch it again.",
+        },
+      ],
+    },
+    {
+      id: "start-nav",
+      label: "Start: navigation",
+      steps: [
+        {
+          from: "browser",
+          to: "router",
+          note: "A link is hovered or clicked. The router handles it without a page load.",
+        },
+        {
+          from: "router",
+          to: "loader",
+          note: "The same loader runs again, this time in the browser.",
+        },
+        {
+          from: "loader",
+          to: "serverfn",
+          note: "The same call, but now the stub sends it over HTTP. It's the only trip to the server.",
+        },
+        {
+          from: "serverfn",
+          to: "data",
+          note: "The handler reads the data and returns JSON.",
+        },
+        {
+          from: "router",
+          to: "browser",
+          note: "Only the routes that changed re-render. The server never rendered any HTML for this page.",
+        },
+      ],
+    },
+    {
+      id: "start-write",
+      label: "Start: write",
+      steps: [
+        {
+          from: "browser",
+          to: "serverfn",
+          note: "A button calls a server function you wrote and named. The call is visible in the code.",
+        },
+        {
+          from: "serverfn",
+          to: "data",
+          note: "The handler writes. It doesn't decide what goes stale.",
+        },
+        {
+          from: "browser",
+          to: "router",
+          note: "router.invalidate() marks every loaded route stale.",
+        },
+        {
+          from: "router",
+          to: "loader",
+          note: "The loaders for the page on screen rerun in the browser.",
+        },
+        {
+          from: "loader",
+          to: "serverfn",
+          note: "They read fresh data through the same server functions as before.",
+        },
+      ],
+    },
+    {
+      id: "next-load",
+      label: "App Router: first load",
+      steps: [
+        {
+          from: "browser",
+          to: "rsc",
+          note: "The browser requests a page.",
+        },
+        {
+          from: "rsc",
+          to: "data",
+          note: "Server components read data inside their own async bodies, as they render.",
+        },
+        {
+          from: "rsc",
+          to: "nextcache",
+          note: "Fetched data may land in the data cache, and a static page in the full route cache.",
+        },
+        {
+          from: "rsc",
+          to: "browser",
+          note: "HTML arrives with a payload describing the server component tree.",
+        },
+        {
+          from: "browser",
+          to: "clientcomp",
+          note: "Only components below a use client line load their JavaScript and hydrate.",
+        },
+      ],
+    },
+    {
+      id: "next-nav",
+      label: "App Router: navigation",
+      steps: [
+        {
+          from: "browser",
+          to: "nextrouter",
+          note: "A link is clicked.",
+        },
+        {
+          from: "nextrouter",
+          to: "rsc",
+          note: "Unless its cache has the route, the router asks the server to render it.",
+        },
+        {
+          from: "rsc",
+          to: "data",
+          note: "Server components render again on the server and read their data.",
+        },
+        {
+          from: "nextrouter",
+          to: "browser",
+          note: "The rendered payload streams back and merges into the page. Every navigation is a server render.",
+        },
+      ],
+    },
+    {
+      id: "next-write",
+      label: "App Router: write",
+      steps: [
+        {
+          from: "clientcomp",
+          to: "action",
+          note: "A form or handler calls a server action. It looks like a function call, and it's a POST to an id the build made up.",
+        },
+        {
+          from: "action",
+          to: "data",
+          note: "The action writes. Actions from one client run one at a time.",
+        },
+        {
+          from: "action",
+          to: "nextcache",
+          note: "The same function calls revalidatePath or revalidateTag to decide what goes stale.",
+        },
+        {
+          from: "action",
+          to: "nextrouter",
+          note: "The response carries freshly rendered UI, and the router merges it in.",
+        },
+      ],
+    },
+  ],
+};
+
+export const DIAGRAMS: Record<DiagramId, Diagram> = {
+  architecture,
+  site,
+  rendering,
+};

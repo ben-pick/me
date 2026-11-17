@@ -3,7 +3,7 @@ slug: loaders-not-boundaries
 title: Loaders, not boundaries
 date: 2026-11-17
 summary: What changed when I moved from the Next.js App Router to TanStack Start, and why the loader is the part I'd keep.
-diagram: site
+diagram: rendering
 draft: true
 ---
 
@@ -48,7 +48,7 @@ It looks simple, and the simplicity comes from a few decisions underneath it.
 
 The loader is not server code, and that turned out to be the best thing about it. It runs on the server for the first request, and in the browser on every navigation after that. That's the opposite of the App Router, where a server component's `async` body never reaches the browser.
 
-I write one function and get both behaviours for free. A first visit, or a search engine, gets complete HTML with the data already in it, and the loader's result is serialized into the page so hydration doesn't fetch it again. From then on the app behaves like a single-page app: the router runs the loader in the browser, swaps the data and re-renders only the routes that changed. Nothing in the route says which mode it's in. The App Router gets a similar result by rendering server components on the server for every navigation and streaming the result to the client. Start's version is simpler: after the first page, the server only does what the browser can't.
+I write one function and get both behaviours for free. A first visit, or a search engine, gets complete HTML with the data already in it, and the loader's result is serialized into the page so hydration doesn't fetch it again. From then on the app behaves like a single-page app: the router runs the loader in the browser, swaps the data and re-renders only the routes that changed. Nothing in the route says which mode it's in. The App Router gets a similar result by rendering server components on the server for every navigation and streaming the result to the client. Start's version is simpler: after the first page, the server only does what the browser can't. The diagram above plays both. Compare Start's navigation with the App Router's and watch which side of the wall does the rendering.
 
 That changes how the loader above behaves. Posts on this site are parsed at build time and bundled as JSON, so `logBySlug` is an array lookup available on both sides. Clicking a log makes no network request at all. The router also preloads on intent:
 
