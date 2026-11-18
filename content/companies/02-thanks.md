@@ -3,7 +3,7 @@ slug: kodo
 name: Kodo (ex-Thanks)
 role: Founding Engineer
 start: Jan 2026
-end: Now
+end: Nov 2026
 highlight: Loyalty for the agentic world
 url: https://kodo.co
 stack: [Cloudflare Workers, React, Next.js, Node.js, TypeScript, MySQL (PlanetScale), Pulumi, GitHub Actions]

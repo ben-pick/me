@@ -62,6 +62,197 @@ const glow = (
   c.fill();
 };
 
+/* ------------------------------------------------------- x15 (Home-in) */
+
+/** Long enough that the reduced-motion still (t = 8) is the finished scene. */
+const X15_LOOP = 8.5;
+
+/** A house, with windows that light up as it becomes home. */
+const house = (c: CanvasRenderingContext2D, x: number, lit: number) => {
+  c.save();
+  c.translate(x, 0);
+  c.fillStyle = shade(c, -14, 66, 215, 75);
+  c.fillRect(-46, -14, 92, 80);
+  c.fillStyle = shade(c, -62, -14, 255, 165);
+  c.beginPath();
+  c.moveTo(-56, -12);
+  c.lineTo(0, -60);
+  c.lineTo(56, -12);
+  c.closePath();
+  c.fill();
+  c.fillStyle = shade(c, -60, -30, 220, 140);
+  c.fillRect(22, -54, 12, 26);
+  // Windows
+  for (const [wx, wy] of [
+    [-32, 2],
+    [12, 2],
+  ] as const) {
+    c.fillStyle = gray(Math.round(35 + lit * 220));
+    c.fillRect(wx, wy, 20, 18);
+    c.fillStyle = gray(Math.round(110 - lit * 60));
+    c.fillRect(wx + 9, wy, 2, 18);
+    c.fillRect(wx, wy + 8, 20, 2);
+  }
+  if (lit > 0) glow(c, 0, 18, 70 * lit, 120);
+  // Door, swinging open
+  c.fillStyle = gray(Math.round(20 + lit * 230));
+  c.fillRect(-9, 32, 18, 34);
+  c.fillStyle = shade(c, 32, 66, 160, 80);
+  c.fillRect(-9, 32, 18 * (1 - lit * 0.75), 34);
+  c.restore();
+};
+
+/** A key, bow on the left. */
+const key = (
+  c: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  a: number,
+  v: number,
+) => {
+  c.save();
+  c.translate(x, y);
+  c.rotate(a);
+  c.fillStyle = shade(c, -9, 9, v, v * 0.55);
+  c.beginPath();
+  c.arc(-10, 0, 8, 0, TAU);
+  c.fill();
+  c.fillRect(-3, -2.5, 24, 5);
+  c.fillRect(13, 2, 3, 5);
+  c.fillRect(18, 2, 3, 7);
+  c.fillStyle = gray(25);
+  c.beginPath();
+  c.arc(-12, 0, 3, 0, TAU);
+  c.fill();
+  c.restore();
+};
+
+/**
+ * Conveyancing: the contract fills in, gets signed and stamped, then the
+ * keys travel along to the house and its lights come on. Three steps along
+ * the bottom track the purchase from offer to settlement.
+ */
+const x15: SceneFn = (c, t) => {
+  const local = t % X15_LOOP;
+  const span = (from: number, to: number) =>
+    ease(clamp01((local - from) / (to - from)));
+  const fade = 1 - span(X15_LOOP - 0.5, X15_LOOP);
+
+  // Everything fades out together at the end instead of playing backwards.
+  const write = span(0.2, 1.8);
+  const sign = span(1.9, 2.7);
+  const stamp = span(2.8, 3.1);
+  const travel = span(3.4, 4.8);
+  const lit = span(4.8, 5.3) * fade;
+
+  // Contract, with a second page tucked behind.
+  const dx = -112;
+  c.fillStyle = gray(70);
+  rr(c, dx - 38, -66, 76, 104, 4);
+  c.fill();
+  c.save();
+  c.translate(dx - 6, 4);
+  c.rotate(-0.06);
+  c.fillStyle = shade(c, -66, 66, 250, 150);
+  rr(c, -40, -66, 80, 110, 4);
+  c.fill();
+  // Clauses being written out
+  c.globalAlpha = fade;
+  const lines = 7;
+  for (let i = 0; i < lines; i++) {
+    const w =
+      (i === 0 ? 40 : 58 - ((i * 13) % 17)) * clamp01(write * lines - i);
+    if (w <= 0) continue;
+    c.fillStyle = gray(i === 0 ? 30 : 95);
+    c.fillRect(-30, -54 + i * 11 + (i === 0 ? 0 : 4), w, i === 0 ? 5 : 3);
+  }
+  // Signature line and a looping signature
+  c.fillStyle = gray(120);
+  c.fillRect(-30, 30, 44, 1.5);
+  if (sign > 0) {
+    c.strokeStyle = gray(15);
+    c.lineWidth = 2;
+    c.lineCap = "round";
+    c.beginPath();
+    const n = Math.floor(40 * sign);
+    for (let i = 0; i <= n; i++) {
+      const u = i / 40;
+      const sx = -28 + u * 40;
+      const sy = 25 - Math.sin(u * TAU * 2.5) * 5 * (1 - u * 0.4);
+      if (i === 0) c.moveTo(sx, sy);
+      else c.lineTo(sx, sy);
+    }
+    c.stroke();
+    c.lineCap = "butt";
+  }
+  // Stamp, landing with a little overshoot
+  if (stamp > 0) {
+    const s = 1.6 - stamp * 0.6;
+    c.save();
+    c.translate(24, 26);
+    c.scale(s, s);
+    c.rotate(0.2);
+    c.strokeStyle = gray(40, stamp);
+    c.lineWidth = 2.5;
+    c.beginPath();
+    c.arc(0, 0, 11, 0, TAU);
+    c.stroke();
+    c.lineWidth = 2.8;
+    c.lineCap = "round";
+    c.beginPath();
+    c.moveTo(-5, 0);
+    c.lineTo(-1.5, 4);
+    c.lineTo(5.5, -4);
+    c.stroke();
+    c.lineCap = "butt";
+    c.restore();
+  }
+  c.globalAlpha = 1;
+  c.restore();
+
+  // Dashed path from contract to the house, with the key riding it.
+  const hx = 112;
+  const path = (u: number): [number, number] => [
+    dx + 40 + (hx - 60 - dx - 40) * u,
+    10 - Math.sin(u * Math.PI) * 58,
+  ];
+  c.strokeStyle = gray(80);
+  c.setLineDash([3, 5]);
+  c.lineWidth = 1.5;
+  c.beginPath();
+  for (let i = 0; i <= 30; i++) {
+    const [px, py] = path(i / 30);
+    if (i === 0) c.moveTo(px, py);
+    else c.lineTo(px, py);
+  }
+  c.stroke();
+  c.setLineDash([]);
+  if (travel > 0 && travel < 1) {
+    const [kx, ky] = path(travel);
+    glow(c, kx, ky, 16, 200);
+    key(c, kx, ky, (travel - 0.5) * 0.9 + Math.sin(t * 6) * 0.08, 255);
+  }
+
+  house(c, hx, lit);
+  if (lit > 0) key(c, hx - 18, 50, Math.PI / 2, 255 * lit);
+
+  // Offer, contract, settlement.
+  const steps = [write * fade, stamp * fade, lit];
+  steps.forEach((on, k) => {
+    const x = -24 + k * 24;
+    if (k > 0) {
+      c.fillStyle = gray(Math.round(70 + on * 150));
+      c.fillRect(x - 21, 69, 18 * Math.max(on, 0.0001), 2);
+      c.fillStyle = gray(60);
+      c.fillRect(x - 21 + 18 * on, 69, 18 * (1 - on), 2);
+    }
+    c.fillStyle = gray(Math.round(80 + on * 175));
+    c.beginPath();
+    c.arc(x, 70, 2 + on * 1.6, 0, TAU);
+    c.fill();
+  });
+};
+
 /* -------------------------------------------------------------------- Kodo */
 
 const cup = (
@@ -790,6 +981,7 @@ const ibm: SceneFn = (c, t) => {
 };
 
 export const COMPANY_GLYPHS: Record<string, SceneFn> = {
+  x15,
   kodo,
   "commbank-staff": commbankStaff,
   "commbank-senior": commbankSenior,
