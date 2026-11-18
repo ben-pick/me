@@ -67,9 +67,12 @@ const glow = (
 /** Long enough that the reduced-motion still (t = 8) is the assembled scene. */
 const X15_LOOP = 10;
 
-/** Venture icons, drawn around (0,0) within about ±14 at brightness `v`. */
+/**
+ * The ventures x15 has built, in launch order, drawn around (0,0) within
+ * about ±14 at brightness `v`.
+ */
 const ventureIcons: ((c: CanvasRenderingContext2D, v: number) => void)[] = [
-  // Home buying: a house
+  // Home-in, home buying: a house
   (c, v) => {
     c.fillStyle = shade(c, -14, 13, v, v * 0.55);
     c.beginPath();
@@ -85,33 +88,76 @@ const ventureIcons: ((c: CanvasRenderingContext2D, v: number) => void)[] = [
     c.fillStyle = gray(25);
     c.fillRect(-3, 4, 6, 9);
   },
-  // Credit score: a gauge
+  // Doshii, hospitality ordering: a cloche on a plate
   (c, v) => {
-    c.strokeStyle = gray(Math.round(v * 0.45));
-    c.lineWidth = 5;
+    c.fillStyle = shade(c, -12, 8, v, v * 0.5);
     c.beginPath();
-    c.arc(0, 6, 13, Math.PI, TAU);
-    c.stroke();
+    c.arc(0, 8, 13, Math.PI, TAU);
+    c.closePath();
+    c.fill();
+    c.beginPath();
+    c.arc(0, -7, 2.8, 0, TAU);
+    c.fill();
+    c.fillStyle = gray(Math.round(v * 0.8));
+    rr(c, -16, 9, 32, 3.5, 1.75);
+    c.fill();
+    c.fillStyle = gray(255, 0.35);
+    c.beginPath();
+    c.ellipse(-5, 0, 2.5, 5, 0.5, 0, TAU);
+    c.fill();
+  },
+  // Unloan, home loans: a rate coming down
+  (c, v) => {
     c.strokeStyle = gray(Math.round(v));
+    c.lineWidth = 2.6;
     c.beginPath();
-    c.arc(0, 6, 13, Math.PI, Math.PI * 1.7);
+    c.arc(-8, -8, 4, 0, TAU);
+    c.moveTo(4, 2);
+    c.arc(0, 2, 4, 0, TAU);
     c.stroke();
-    c.lineWidth = 2.5;
     c.lineCap = "round";
     c.beginPath();
-    c.moveTo(0, 6);
-    c.lineTo(Math.cos(Math.PI * 1.7) * 10, 6 + Math.sin(Math.PI * 1.7) * 10);
+    c.moveTo(4, -12);
+    c.lineTo(-12, 8);
+    c.stroke();
+    c.strokeStyle = gray(Math.round(v * 0.75));
+    c.beginPath();
+    c.moveTo(11, -6);
+    c.lineTo(11, 12);
+    c.moveTo(7, 8);
+    c.lineTo(11, 12);
+    c.lineTo(15, 8);
     c.stroke();
     c.lineCap = "butt";
   },
-  // Business insights: rising bars
+  // Kit, kids' pocket money: stacked coins
   (c, v) => {
-    [6, 11, 16, 24].forEach((h, k) => {
-      c.fillStyle = shade(c, 12 - h, 12, v, v * 0.5);
-      c.fillRect(-14 + k * 7.5, 12 - h, 5.5, h);
-    });
+    for (let k = 0; k < 3; k++) {
+      c.fillStyle = gray(Math.round(v * (0.5 + k * 0.25)));
+      c.beginPath();
+      c.ellipse(-3, 9 - k * 6, 10, 4, 0, 0, TAU);
+      c.fill();
+    }
+    c.fillStyle = shade(c, -14, 2, v, v * 0.6);
+    c.beginPath();
+    c.arc(8, -6, 7, 0, TAU);
+    c.fill();
   },
-  // Identity protection: a shield with a tick
+  // Waddle, invoice finance: an invoice with a folded corner
+  (c, v) => {
+    c.fillStyle = shade(c, -14, 14, v, v * 0.6);
+    c.beginPath();
+    c.moveTo(-10, -14);
+    c.lineTo(5, -14);
+    c.lineTo(10, -9);
+    c.lineTo(10, 14);
+    c.lineTo(-10, 14);
+    c.closePath();
+    c.fill();
+    c.fillStyle = gray(30);
+    for (let k = 0; k < 4; k++) c.fillRect(-6, -6 + k * 5, k === 3 ? 7 : 12, 2);
+  },
+  // Truyu, identity protection: a shield with a tick
   (c, v) => {
     c.fillStyle = shade(c, -14, 14, v, v * 0.5);
     c.beginPath();
@@ -129,46 +175,37 @@ const ventureIcons: ((c: CanvasRenderingContext2D, v: number) => void)[] = [
     c.lineTo(6, -4);
     c.stroke();
   },
-  // Kids' money: stacked coins
+  // PaidIt, payouts: a paper plane on its way
   (c, v) => {
-    for (let k = 0; k < 3; k++) {
-      c.fillStyle = gray(Math.round(v * (0.5 + k * 0.25)));
-      c.beginPath();
-      c.ellipse(-3, 9 - k * 6, 10, 4, 0, 0, TAU);
-      c.fill();
-    }
-    c.fillStyle = shade(c, -14, 2, v, v * 0.6);
+    c.fillStyle = shade(c, -12, 12, v, v * 0.6);
     c.beginPath();
-    c.arc(8, -6, 7, 0, TAU);
-    c.fill();
-  },
-  // Invoices: a page with lines and a folded corner
-  (c, v) => {
-    c.fillStyle = shade(c, -14, 14, v, v * 0.6);
-    c.beginPath();
-    c.moveTo(-10, -14);
-    c.lineTo(5, -14);
-    c.lineTo(10, -9);
-    c.lineTo(10, 14);
-    c.lineTo(-10, 14);
+    c.moveTo(14, -11);
+    c.lineTo(-14, 0);
+    c.lineTo(-3, 3);
     c.closePath();
     c.fill();
-    c.fillStyle = gray(30);
-    for (let k = 0; k < 4; k++) c.fillRect(-6, -6 + k * 5, k === 3 ? 7 : 12, 2);
+    c.fillStyle = gray(Math.round(v * 0.55));
+    c.beginPath();
+    c.moveTo(14, -11);
+    c.lineTo(-3, 3);
+    c.lineTo(2, 13);
+    c.closePath();
+    c.fill();
   },
 ];
 
 /** Where each venture docks around the hub, and where it drifts in from. */
 const VENTURE_DOCK = ventureIcons.map((_, k) => {
-  const a = (k / ventureIcons.length) * TAU - Math.PI / 2 + Math.PI / 6;
-  return [Math.cos(a) * 128, Math.sin(a) * 52] as const;
+  const a = (k / ventureIcons.length) * TAU - Math.PI / 2;
+  return [Math.cos(a) * 150, Math.sin(a) * 58] as const;
 });
 const VENTURE_FAR = VENTURE_DOCK.map(
   ([x, y], k) => [x * 1.45 + (k % 2 ? 18 : -18), y * 1.9] as const,
 );
 
 /**
- * x15 builds and scales ventures: they drift in from the edges, dock around
+ * x15 builds and scales ventures: Home-in, Doshii, Unloan, Kit, Waddle,
+ * Truyu and PaidIt drift in from the edges, dock around
  * a hub, link up and pulse into it, then drift apart again.
  */
 const x15: SceneFn = (c, t) => {
