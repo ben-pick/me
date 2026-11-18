@@ -62,194 +62,236 @@ const glow = (
   c.fill();
 };
 
-/* ------------------------------------------------------- x15 (Home-in) */
+/* -------------------------------------------------------------------- x15 */
 
-/** Long enough that the reduced-motion still (t = 8) is the finished scene. */
-const X15_LOOP = 8.5;
-
-/** A house, with windows that light up as it becomes home. */
-const house = (c: CanvasRenderingContext2D, x: number, lit: number) => {
-  c.save();
-  c.translate(x, 0);
-  c.fillStyle = shade(c, -14, 66, 215, 75);
-  c.fillRect(-46, -14, 92, 80);
-  c.fillStyle = shade(c, -62, -14, 255, 165);
-  c.beginPath();
-  c.moveTo(-56, -12);
-  c.lineTo(0, -60);
-  c.lineTo(56, -12);
-  c.closePath();
-  c.fill();
-  c.fillStyle = shade(c, -60, -30, 220, 140);
-  c.fillRect(22, -54, 12, 26);
-  // Windows
-  for (const [wx, wy] of [
-    [-32, 2],
-    [12, 2],
-  ] as const) {
-    c.fillStyle = gray(Math.round(35 + lit * 220));
-    c.fillRect(wx, wy, 20, 18);
-    c.fillStyle = gray(Math.round(110 - lit * 60));
-    c.fillRect(wx + 9, wy, 2, 18);
-    c.fillRect(wx, wy + 8, 20, 2);
-  }
-  if (lit > 0) glow(c, 0, 18, 70 * lit, 120);
-  // Door, swinging open
-  c.fillStyle = gray(Math.round(20 + lit * 230));
-  c.fillRect(-9, 32, 18, 34);
-  c.fillStyle = shade(c, 32, 66, 160, 80);
-  c.fillRect(-9, 32, 18 * (1 - lit * 0.75), 34);
-  c.restore();
-};
-
-/** A key, bow on the left. */
-const key = (
-  c: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  a: number,
-  v: number,
-) => {
-  c.save();
-  c.translate(x, y);
-  c.rotate(a);
-  c.fillStyle = shade(c, -9, 9, v, v * 0.55);
-  c.beginPath();
-  c.arc(-10, 0, 8, 0, TAU);
-  c.fill();
-  c.fillRect(-3, -2.5, 24, 5);
-  c.fillRect(13, 2, 3, 5);
-  c.fillRect(18, 2, 3, 7);
-  c.fillStyle = gray(25);
-  c.beginPath();
-  c.arc(-12, 0, 3, 0, TAU);
-  c.fill();
-  c.restore();
-};
+/** Long enough that the reduced-motion still (t = 8) is the assembled scene. */
+const X15_LOOP = 10;
 
 /**
- * Conveyancing: the contract fills in, gets signed and stamped, then the
- * keys travel along to the house and its lights come on. Three steps along
- * the bottom track the purchase from offer to settlement.
+ * The ventures x15 has built, in launch order, drawn around (0,0) within
+ * about ±14 at brightness `v`.
+ */
+const ventureIcons: ((c: CanvasRenderingContext2D, v: number) => void)[] = [
+  // Home-in, home buying: a house
+  (c, v) => {
+    c.fillStyle = shade(c, -14, 13, v, v * 0.55);
+    c.beginPath();
+    c.moveTo(-14, -1);
+    c.lineTo(0, -14);
+    c.lineTo(14, -1);
+    c.lineTo(10, -1);
+    c.lineTo(10, 13);
+    c.lineTo(-10, 13);
+    c.lineTo(-10, -1);
+    c.closePath();
+    c.fill();
+    c.fillStyle = gray(25);
+    c.fillRect(-3, 4, 6, 9);
+  },
+  // Doshii, hospitality ordering: a cloche on a plate
+  (c, v) => {
+    c.fillStyle = shade(c, -12, 8, v, v * 0.5);
+    c.beginPath();
+    c.arc(0, 8, 13, Math.PI, TAU);
+    c.closePath();
+    c.fill();
+    c.beginPath();
+    c.arc(0, -7, 2.8, 0, TAU);
+    c.fill();
+    c.fillStyle = gray(Math.round(v * 0.8));
+    rr(c, -16, 9, 32, 3.5, 1.75);
+    c.fill();
+    c.fillStyle = gray(255, 0.35);
+    c.beginPath();
+    c.ellipse(-5, 0, 2.5, 5, 0.5, 0, TAU);
+    c.fill();
+  },
+  // Unloan, home loans: a rate coming down
+  (c, v) => {
+    c.strokeStyle = gray(Math.round(v));
+    c.lineWidth = 2.6;
+    c.beginPath();
+    c.arc(-8, -8, 4, 0, TAU);
+    c.moveTo(4, 2);
+    c.arc(0, 2, 4, 0, TAU);
+    c.stroke();
+    c.lineCap = "round";
+    c.beginPath();
+    c.moveTo(4, -12);
+    c.lineTo(-12, 8);
+    c.stroke();
+    c.strokeStyle = gray(Math.round(v * 0.75));
+    c.beginPath();
+    c.moveTo(11, -6);
+    c.lineTo(11, 12);
+    c.moveTo(7, 8);
+    c.lineTo(11, 12);
+    c.lineTo(15, 8);
+    c.stroke();
+    c.lineCap = "butt";
+  },
+  // Kit, kids' pocket money: stacked coins
+  (c, v) => {
+    for (let k = 0; k < 3; k++) {
+      c.fillStyle = gray(Math.round(v * (0.5 + k * 0.25)));
+      c.beginPath();
+      c.ellipse(-3, 9 - k * 6, 10, 4, 0, 0, TAU);
+      c.fill();
+    }
+    c.fillStyle = shade(c, -14, 2, v, v * 0.6);
+    c.beginPath();
+    c.arc(8, -6, 7, 0, TAU);
+    c.fill();
+  },
+  // Waddle, invoice finance: an invoice with a folded corner
+  (c, v) => {
+    c.fillStyle = shade(c, -14, 14, v, v * 0.6);
+    c.beginPath();
+    c.moveTo(-10, -14);
+    c.lineTo(5, -14);
+    c.lineTo(10, -9);
+    c.lineTo(10, 14);
+    c.lineTo(-10, 14);
+    c.closePath();
+    c.fill();
+    c.fillStyle = gray(30);
+    for (let k = 0; k < 4; k++) c.fillRect(-6, -6 + k * 5, k === 3 ? 7 : 12, 2);
+  },
+  // Truyu, identity protection: a shield with a tick
+  (c, v) => {
+    c.fillStyle = shade(c, -14, 14, v, v * 0.5);
+    c.beginPath();
+    c.moveTo(0, -14);
+    c.lineTo(12, -9);
+    c.quadraticCurveTo(12, 8, 0, 14);
+    c.quadraticCurveTo(-12, 8, -12, -9);
+    c.closePath();
+    c.fill();
+    c.strokeStyle = gray(25);
+    c.lineWidth = 2.6;
+    c.beginPath();
+    c.moveTo(-5, 0);
+    c.lineTo(-1, 4);
+    c.lineTo(6, -4);
+    c.stroke();
+  },
+  // PaidIt, payouts: a paper plane on its way
+  (c, v) => {
+    c.fillStyle = shade(c, -12, 12, v, v * 0.6);
+    c.beginPath();
+    c.moveTo(14, -11);
+    c.lineTo(-14, 0);
+    c.lineTo(-3, 3);
+    c.closePath();
+    c.fill();
+    c.fillStyle = gray(Math.round(v * 0.55));
+    c.beginPath();
+    c.moveTo(14, -11);
+    c.lineTo(-3, 3);
+    c.lineTo(2, 13);
+    c.closePath();
+    c.fill();
+  },
+];
+
+/** Where each venture docks around the hub, and where it drifts in from. */
+const VENTURE_DOCK = ventureIcons.map((_, k) => {
+  const a = (k / ventureIcons.length) * TAU - Math.PI / 2;
+  return [Math.cos(a) * 150, Math.sin(a) * 58] as const;
+});
+const VENTURE_FAR = VENTURE_DOCK.map(
+  ([x, y], k) => [x * 1.45 + (k % 2 ? 18 : -18), y * 1.9] as const,
+);
+
+/**
+ * x15 builds and scales ventures: Home-in, Doshii, Unloan, Kit, Waddle,
+ * Truyu and PaidIt drift in from the edges, dock around
+ * a hub, link up and pulse into it, then drift apart again.
  */
 const x15: SceneFn = (c, t) => {
   const local = t % X15_LOOP;
   const span = (from: number, to: number) =>
     ease(clamp01((local - from) / (to - from)));
-  const fade = 1 - span(X15_LOOP - 0.5, X15_LOOP);
+  const out = span(8.6, 9.8);
+  const linked = span(2.8, 3.6) * (1 - span(8.3, 8.7));
+  const hub = span(2.4, 3.2) * (1 - out);
 
-  // Everything fades out together at the end instead of playing backwards.
-  const write = span(0.2, 1.8);
-  const sign = span(1.9, 2.7);
-  const stamp = span(2.8, 3.1);
-  const travel = span(3.4, 4.8);
-  const lit = span(4.8, 5.3) * fade;
-
-  // Contract, with a second page tucked behind.
-  const dx = -112;
-  c.fillStyle = gray(70);
-  rr(c, dx - 38, -66, 76, 104, 4);
-  c.fill();
-  c.save();
-  c.translate(dx - 6, 4);
-  c.rotate(-0.06);
-  c.fillStyle = shade(c, -66, 66, 250, 150);
-  rr(c, -40, -66, 80, 110, 4);
-  c.fill();
-  // Clauses being written out
-  c.globalAlpha = fade;
-  const lines = 7;
-  for (let i = 0; i < lines; i++) {
-    const w =
-      (i === 0 ? 40 : 58 - ((i * 13) % 17)) * clamp01(write * lines - i);
-    if (w <= 0) continue;
-    c.fillStyle = gray(i === 0 ? 30 : 95);
-    c.fillRect(-30, -54 + i * 11 + (i === 0 ? 0 : 4), w, i === 0 ? 5 : 3);
-  }
-  // Signature line and a looping signature
-  c.fillStyle = gray(120);
-  c.fillRect(-30, 30, 44, 1.5);
-  if (sign > 0) {
-    c.strokeStyle = gray(15);
-    c.lineWidth = 2;
-    c.lineCap = "round";
+  // Links and the pulses travelling into the hub.
+  VENTURE_DOCK.forEach(([x, y], k) => {
+    if (linked <= 0) return;
+    c.strokeStyle = gray(Math.round(110 * linked));
+    c.lineWidth = 1.5;
+    c.setLineDash([3, 4]);
     c.beginPath();
-    const n = Math.floor(40 * sign);
-    for (let i = 0; i <= n; i++) {
-      const u = i / 40;
-      const sx = -28 + u * 40;
-      const sy = 25 - Math.sin(u * TAU * 2.5) * 5 * (1 - u * 0.4);
-      if (i === 0) c.moveTo(sx, sy);
-      else c.lineTo(sx, sy);
-    }
+    c.moveTo(x * 0.78, y * 0.62);
+    c.lineTo(x * 0.25, y * 0.3);
     c.stroke();
-    c.lineCap = "butt";
-  }
-  // Stamp, landing with a little overshoot
-  if (stamp > 0) {
-    const s = 1.6 - stamp * 0.6;
-    c.save();
-    c.translate(24, 26);
-    c.scale(s, s);
-    c.rotate(0.2);
-    c.strokeStyle = gray(40, stamp);
-    c.lineWidth = 2.5;
+    c.setLineDash([]);
+    const p = (t * 0.7 + k / VENTURE_DOCK.length) % 1;
+    const px = x * 0.78 + (x * 0.25 - x * 0.78) * p;
+    const py = y * 0.62 + (y * 0.3 - y * 0.62) * p;
+    glow(c, px, py, 8 * linked, 255);
+    c.fillStyle = gray(255, linked);
     c.beginPath();
-    c.arc(0, 0, 11, 0, TAU);
-    c.stroke();
-    c.lineWidth = 2.8;
-    c.lineCap = "round";
-    c.beginPath();
-    c.moveTo(-5, 0);
-    c.lineTo(-1.5, 4);
-    c.lineTo(5.5, -4);
-    c.stroke();
-    c.lineCap = "butt";
-    c.restore();
-  }
-  c.globalAlpha = 1;
-  c.restore();
-
-  // Dashed path from contract to the house, with the key riding it.
-  const hx = 112;
-  const path = (u: number): [number, number] => [
-    dx + 40 + (hx - 60 - dx - 40) * u,
-    10 - Math.sin(u * Math.PI) * 58,
-  ];
-  c.strokeStyle = gray(80);
-  c.setLineDash([3, 5]);
-  c.lineWidth = 1.5;
-  c.beginPath();
-  for (let i = 0; i <= 30; i++) {
-    const [px, py] = path(i / 30);
-    if (i === 0) c.moveTo(px, py);
-    else c.lineTo(px, py);
-  }
-  c.stroke();
-  c.setLineDash([]);
-  if (travel > 0 && travel < 1) {
-    const [kx, ky] = path(travel);
-    glow(c, kx, ky, 16, 200);
-    key(c, kx, ky, (travel - 0.5) * 0.9 + Math.sin(t * 6) * 0.08, 255);
-  }
-
-  house(c, hx, lit);
-  if (lit > 0) key(c, hx - 18, 50, Math.PI / 2, 255 * lit);
-
-  // Offer, contract, settlement.
-  const steps = [write * fade, stamp * fade, lit];
-  steps.forEach((on, k) => {
-    const x = -24 + k * 24;
-    if (k > 0) {
-      c.fillStyle = gray(Math.round(70 + on * 150));
-      c.fillRect(x - 21, 69, 18 * Math.max(on, 0.0001), 2);
-      c.fillStyle = gray(60);
-      c.fillRect(x - 21 + 18 * on, 69, 18 * (1 - on), 2);
-    }
-    c.fillStyle = gray(Math.round(80 + on * 175));
-    c.beginPath();
-    c.arc(x, 70, 2 + on * 1.6, 0, TAU);
+    c.arc(px, py, 2.4, 0, TAU);
     c.fill();
+  });
+
+  // Hub: rings pulse out, with an x at its heart.
+  for (let k = 0; k < 3; k++) {
+    const p = (t * 0.5 + k / 3) % 1;
+    c.strokeStyle = gray(255, 0.5 * (1 - p) * hub);
+    c.lineWidth = 2;
+    c.beginPath();
+    c.ellipse(0, 0, 30 + p * 40, 26 + p * 22, 0, 0, TAU);
+    c.stroke();
+  }
+  const r = 20 + hub * 6;
+  c.fillStyle = shade(c, -r, r, 60 + hub * 60, 25 + hub * 20);
+  c.beginPath();
+  c.arc(0, 0, r, 0, TAU);
+  c.fill();
+  c.strokeStyle = gray(Math.round(110 + hub * 145));
+  c.lineWidth = 1.5;
+  c.stroke();
+  if (hub > 0) glow(c, 0, 0, 34 * hub, 90);
+  c.strokeStyle = gray(Math.round(140 + hub * 115));
+  c.lineWidth = 5;
+  c.lineCap = "round";
+  const s = 8 + hub * 2;
+  c.beginPath();
+  c.moveTo(-s, -s);
+  c.lineTo(s, s);
+  c.moveTo(s, -s);
+  c.lineTo(-s, s);
+  c.stroke();
+  c.lineCap = "butt";
+
+  // Ventures, each arriving and leaving on its own beat.
+  ventureIcons.forEach((icon, k) => {
+    const delay = k * 0.14;
+    const docked =
+      span(1 + delay, 2.4 + delay) *
+      (1 - span(8.6 + delay * 0.5, 9.6 + delay * 0.5));
+    const [dx, dy] = VENTURE_DOCK[k] ?? [0, 0];
+    const [fx, fy] = VENTURE_FAR[k] ?? [0, 0];
+    const bob = Math.sin(t * 1.4 + k * 1.7) * (3 + 3 * (1 - docked));
+    const x = fx + (dx - fx) * docked;
+    const y = fy + (dy - fy) * docked + bob;
+    const level = 0.45 + docked * 0.55;
+
+    c.save();
+    c.translate(x, y);
+    c.rotate((1 - docked) * (k % 2 ? 0.35 : -0.35));
+    c.scale(0.8 + docked * 0.2, 0.8 + docked * 0.2);
+    c.fillStyle = gray(Math.round((45 + linked * 25) * level));
+    rr(c, -24, -22, 48, 44, 9);
+    c.fill();
+    c.strokeStyle = gray(Math.round((120 + linked * 135) * level));
+    c.lineWidth = 1.5;
+    c.stroke();
+    icon(c, Math.round(255 * level));
+    c.restore();
   });
 };
 
