@@ -7,14 +7,14 @@
   "location": "Sydney",
   "coordinates": "33.87°S 151.21°E",
   "tags": [
-    "Founding Engineer @ Kodo",
-    "ex-Staff SWE @ CommBank",
-    "UNSW Comp Sci"
+    "SWE @ x15ventures",
+    "ex-Founding Engineer @ Kodo",
+    "ex-Staff SWE @ CommBank"
   ],
   "url": "https://bpick.dev",
   "seo": {
     "title": "Benjamin Pick — Software Engineer, Sydney",
-    "description": "Software engineer in Sydney. Founding Engineer at Kodo, ex-Staff SWE at CommBank, building a sandbox for AI-generated code.",
+    "description": "Software engineer in Sydney. Software Engineer at x15ventures, ex-Founding Engineer at Kodo, ex-Staff SWE at CommBank, building a sandbox for AI-generated code.",
     "logsDescription": "Build logs and notes from Benjamin Pick, a software engineer in Sydney."
   },
   "contact": {
